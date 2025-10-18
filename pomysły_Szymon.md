@@ -80,3 +80,20 @@ Aplikacja mobilna/webowa do śledzenia wspólnych wydatków w grupach (współlo
 
 ### Adekwatność do zrealizowania
 Projekt jest bardzo dobrze dopasowany do możliwości zespołu studenckiego. Można zacząć od prostej wersji web z podstawowymi funkcjami (dodawanie wydatków, podział równy, proste rozliczenia) i rozwijać o zaawansowane algorytmy optymalizacji rozliczeń. MVP można zrealizować w 6-8 tygodni, a następnie iteracyjnie dodawać funkcje. Problem jest zrozumiały i dobrze zdefiniowany, co ułatwia planowanie i realizację.
+
+
+## Aplikacja do planowania szczegółowego podróży
+
+### Komunikacja
+Loty, taxi, całą komunikację możliwość wprowadzenia, ceny, lokalizacji, godziny, trwanie, trwanie
+
+### Lista do pakowania na wyjazd itd.
+samemu sobie wklepać rzeczy z checklisya itd
+
+### Zakwaterowanie
+Hotele od kiedy zameldowani kiedy wymeldowanie, kontakt telefoniczny do hotelu, adres 
+ 
+### Planowanie podróży 
+zapisywanie atrakcji z lokalizacjami cenami, określanie konieczności
+czas na niepotrzebny
+
