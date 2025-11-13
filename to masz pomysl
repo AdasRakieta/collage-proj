@@ -1,1 +1,41 @@
-meow
+##  System rezerwacji
+
+Webowy system umożliwiający rezerwowanie usług.
+
+Funkcje:
+
+Kalendarz z wolnymi terminami.
+Formularz tworzenia rezerwacji.
+Panel użytkownika z listą rezerwacji.
+Panel admina z zarządzaniem dostępnością.
+Powiadomienia e-mail 
+
+Technologie (propozycja):
+
+Frontend: React 
+Backend: Node.js 
+Baza danych: PostgreSQL
+
+##  Quizy (Aplikacja quizowa)
+
+Aplikacja webowa pozwalająca użytkownikom rozwiązywać różne quizy tematyczne.
+
+Funkcje:
+
+Wybór kategorii quizu (np. IT, historia, gry, samochody).
+
+Pytania jednokrotnego wyboru, timer, licznik punktów.
+Podsumowanie wyników po quizie.
+Panel admina do dodawania pytań.
+Tryb gry ze znajomymi (pokój prywatny, ranking).
+
+Technologie (propozycja):
+Frontend: React 
+Backend: Node.js
+Baza danych: PostgreSQL
+
+## Aplikacja monitorująca wydatki
+Aplikacja umożliwiająca użytkownikowi monitorowanie swoich wydatków.
+Miesięczne zestawienia, wykresy słupkowe i kołowe
+Podzielenie wydatków na kategorie
+Logowanie użytkownika
