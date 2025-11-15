@@ -216,36 +216,54 @@ Projekt jest **bardzo dobrze dopasowany** do realizacji przez zespół studencki
 4. **Faza 4 (2 tygodnie)**: Dashboard, budżet, eksport do PDF
 5. **Faza 5 (1-2 tygodnie)**: Testy, poprawki, dokumentacja
 
-**Wymagany zespół**: 3-5 osób
-- 2 osoby - frontend (HTML/CSS/JavaScript/React)
-- 1-2 osoby - backend (Python/Flask/Django)
+**Wymagany zespół**: 
+- 1 osoby - frontend (HTML/CSS/JavaScript/React)
+- 1 osoby - backend (Python/Flask/Django)
 - 1 osoba - baza danych i integracje
 
-Projekt pozwala na wykorzystanie zarówno technologii frontendowych (HTML, CSS, JS), jak i backendowych (Python), co czyni go idealnym do nauki full-stack development. Minimalna wersja (MVP) może być gotowa w 6-8 tygodni, co mieści się w terminie do 15.11.
+Projekt pozwala na wykorzystanie zarówno technologii frontendowych (HTML, CSS, JS), jak i backendowych (Python), co czyni go idealnym do nauki full-stack development. Minimalna wersja (MVP) może być gotowa w 6-8 tygodni, co mieści się w terminie do 
+
+
+
+
 
 Pomysł na aplikację: inventory-app
 
-Chciałbym przedstawić koncepcję aplikacji o nazwie inventory-app, która miałaby służyć do zarządzania zasobami - na przykład w firmie, magazynie czy innym miejscu, gdzie ważna jest ewidencja produktów.
+Opis projektu
 
-Założenia aplikacji:
+inventory-app to koncepcja aplikacji do zarządzania zasobami magazynowymi, stworzonej z myślą o usprawnieniu ewidencjonowania produktów, kontroli stanów magazynowych i efektywnej pracy osób zajmujących się gospodarką magazynową.
 
-• Główne funkcje:
+Główne funkcjonalności
 
-• Możliwość dodawania nowych produktów do bazy danych z informacjami takimi jak nazwa, opis, kategoria i ilość.
+• Dodawanie produktówUmożliwienie wprowadzania nowych produktów z informacjami takimi jak nazwa, opis, kategoria oraz ilość.
 
-• Przeglądanie aktualnego stanu magazynu i szybkie wyszukiwanie produktów według różnych kryteriów.
+• Przeglądanie stanu magazynowegoSzybka możliwość sprawdzania dostępności produktów oraz ich wyszukiwania według różnych kryteriów.
 
-• Edytowanie danych produktów w przypadku np. zmiany ceny lub ilości.
+• Edytowanie i usuwanie produktówOpcja aktualizacji informacji o produktach oraz usuwania zbędnych pozycji.
 
-• Usuwanie produktów, które nie są już potrzebne.
+• Historia zmianLogowanie operacji na produktach w celu monitorowania przepływu towaru.
 
-• Monitorowanie historii zmian, aby mieć pełną kontrolę nad ruchem towaru.
+• Możliwość rozbudowyOtwartość na dodawanie funkcjonalności, takich jak powiadomienia o niskim stanie magazynowym lub integracja z innymi systemami.
 
-• Cel aplikacji:Ułatwienie pracy osobom zajmującym się gospodarką magazynową poprzez przejrzysty dostęp do wszystkich kluczowych informacji. Projekt pozwoli efektywnie kontrolować stany magazynowe, planować zamówienia i zarządzać rotacją produktów.
 
-• Możliwość rozbudowy:W przyszłości aplikację będzie można rozszerzyć o dodatkowe funkcje, np. powiadomienia o niskim stanie magazynowym lub integrację z systemem fakturowania.
+Proponowane technologie
 
-• Intuicyjność:Interfejs będzie prosty i czytelny zarówno dla osób pracujących indywidualnie, jak i dla całych zespołów odpowiedzialnych za zarządzanie zasobami.
+Backend
 
-Podsumowanie:Inventory-app byłaby praktycznym narzędziem do efektywnego zarządzania produktami i materiałami w magazynie lub biurze. Dzięki niej proces ewidencji oraz monitorowania zasobów stanie się prostszy, szybszy i mniej podatny na błędy.
+• Node.jsPopularny środowisko uruchomieniowe dla JavaScript na serwerze. Szybkie, skalowalne, szeroko wspierane przez społeczność.
 
+• Express.jsLekki framework dla Node.js, umożliwiający tworzenie API REST do obsługi operacji CRUD (Create, Read, Update, Delete).
+
+• MongoDBNoSQL baza danych - elastyczna, dobrze nadaje się do przechowywania dokumentów produktów, łatwo skalowalna.
+
+Frontend
+
+• ReactNowoczesna biblioteka JavaScript do budowy interfejsów użytkownika. Umożliwia tworzenie dynamicznych i responsywnych aplikacji webowych.
+
+• Material-UIBiblioteka komponentów UI oparta na designie Material Design od Google, przyspieszająca proces tworzenia estetycznego interfejsu.
+
+Narzędzia dodatkowe
+
+• Git & GitHubSystem kontroli wersji i platforma do współpracy zespołowej oraz hostowania kodu.
+
+• DockerNarzędzie do konteneryzacji aplikacji, co ułatwia wdrażanie i testowanie w różnych środowiskach.
