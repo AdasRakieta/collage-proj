@@ -2,7 +2,7 @@
 ## Pomysł 1: Aplikacja webowa do szczegółowego planowania podróży
 
 ### Opis projektu
-Kompleksowa aplikacja webowa służąca do planowania i organizacji wszystkich aspektów podróży. System umożliwia zarządzanie transportem, zakwaterowaniem, atrakcjami turystycznymi oraz listami p[...]
+Kompleksowa aplikacja webowa służąca do planowania i organizacji wszystkich aspektów podróży. System umożliwia zarządzanie transportem, zakwaterowaniem, atrakcjami turystycznymi oraz listami podróży.
 
 ### Problem, który rozwiązuje
 - Rozproszenie informacji o podróży w różnych miejscach (maile, notatki, zdjęcia)
