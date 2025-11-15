@@ -2,7 +2,7 @@
 ## Pomysł 1: Aplikacja webowa do szczegółowego planowania podróży
 
 ### Opis projektu
-Kompleksowa aplikacja webowa służąca do planowania i organizacji wszystkich aspektów podróży. System umożliwia zarządzanie transportem, zakwaterowaniem, atrakcjami turystycznymi oraz listami podróży.
+Kompleksowa aplikacja webowa służąca do planowania i organizacji wszystkich aspektów podróży. System umożliwia zarządzanie transportem, zakwaterowaniem, atrakcjami turystycznymi oraz listami p[...]
 
 ### Problem, który rozwiązuje
 - Rozproszenie informacji o podróży w różnych miejscach (maile, notatki, zdjęcia)
@@ -138,18 +138,18 @@ Projekt jest **bardzo dobrze dopasowany** do realizacji przez zespół studencki
 - 1 osoby - backend (TypeScript, Node.js, Express)
 - 1 osoba - baza danych i integracje
 
-Projekt pozwala na wykorzystanie zarówno technologii frontendowych (HTML, CSS, JS/TS), jak i backendowych (TypeScript), co czyni go idealnym do nauki full-stack development. Minimalna wersja (MVP) może być
+Projekt pozwala na wykorzystanie zarówno technologii frontendowych (HTML, CSS, JS/TS), jak i backendowych (TypeScript), co czyni go idealnym do nauki full-stack development. Minimalna wersja (MVP) mo[...]
 
 ---
 
-## Pomysł 2: Aplikacja webowa do inwentaryzacji zasobów magazynowych
+## Pomysł 2: **Mobilna aplikacja do inwentaryzacji zasobów magazynowych**
 
 ### Opis projektu
-Aplikacja webowa przeznaczona do efektywnego zarządzania zasobami i produktami magazynowymi. System umożliwia ewidencjonowanie produktów, kontrolę stanów magazynowych, rejestrowanie przepływu to[...]
+Aplikacja **mobilna** przeznaczona do efektywnego zarządzania zasobami i produktami magazynowymi. System umożliwia ewidencjonowanie produktów, kontrolę stanów magazynowych, rejestrowanie przepływu towarów oraz powiadomienia o niskich stanach.
 
 ### Problem, który rozwiązuje
 - Chaos oraz zagubione informacje o produktach i ich ilości w magazynie
-- Brak szybkiego i łatwego dostępu do stanu magazynowego
+- Brak szybkiego i wygodnego dostępu do stanu magazynowego na urządzeniach mobilnych
 - Trudności w monitorowaniu historii operacji na produktach
 - Brak ostrzeżeń o niskim stanie magazynowym i ryzyku braków
 - Skomplikowane lub nieudokumentowane procedury zarządzania zapasami
@@ -177,37 +177,36 @@ Aplikacja webowa przeznaczona do efektywnego zarządzania zasobami i produktami 
 - Dodatkowe raporty i statystyki przepływu magazynowego
 
 ### Zalety
-- **Centralizacja**: Wszystkie dane produktowe w jednym miejscu
-- **Szybkość i wygoda**: Błyskawiczny dostęp do informacji oraz stanów magazynowych
+- **Centralizacja**: Wszystkie dane produktowe w jednym miejscu, dostępne mobilnie
+- **Szybkość i wygoda**: Błyskawiczny dostęp do informacji oraz stanów magazynowych na smartfonie
 - **Elastyczność**: Możliwość dodawania nowych funkcji wraz z rozwojem biznesu
 - **Historia operacji**: Pełna kontrola i audyt przepływu towarów w magazynie
-- **Intuicyjność**: Prosty, szybki i responsywny interfejs
+- **Intuicyjność**: Prosty, szybki i responsywny interfejs mobilny
 - **Powiadomienia**: Automatyczne ostrzeżenia o niskim stanie magazynowym
 
 ### Wady
 - **Brak rozbudowanych funkcji integracji**: Podstawowa wersja wymaga ręcznego dodawania danych i operacji
 - **Konieczność wstępnej konfiguracji**: Należy zdefiniować kategorie, bazę produktową i użytkowników
-- **Konkurencja na rynku**: Wiele aplikacji magazynowych istnieje już komercyjnie jako SAAS
+- **Konkurencja na rynku**: Dużo aplikacji magazynowych istnieje już komercyjnie jako SAAS/mobilne
 - **Utrzymanie**: Wymaga regularnej aktualizacji oraz backupu danych
 
 ### Narzędzia w użyciu
 
-#### Backend
-- **Node.js**: Środowisko uruchomieniowe JavaScript do logiki serwerowej
-- **Express.js**: Lekki framework do budowy API RESTful i obsługi operacji CRUD
-- **MongoDB**: Elastyczna, skalowalna baza NoSQL do przechowywania danych produktowych
+#### Mobilny Backend/Sync
+- **Firebase** (Realtime Database/Firestore) lub własny lekki backend REST
 
-#### Frontend
-- **React.js**: Biblioteka do budowy dynamicznego i komponentowego interfejsu
-- **Material-UI**: Gotowe komponenty UI, bazujące na Material Design, do szybkiego tworzenia estetycznych widoków
+#### Frontend mobilny
+- **Flutter (Dart)**: Rozwijanie aplikacji multiplatformowej (Android/iOS)
+- **Kotlin** (Android): Realizacja wersji natywnej na Androida
+- **Material Design**: Standard nowoczesnego interfejsu mobilnego dla Fluttera i Androida
+- **Camera/Scanner API**: Możliwość dodania obsługi kodów kreskowych przez kamerę urządzenia
 
 #### Dodatkowe narzędzia
 - **Git & GitHub**: Kontrola wersji i repozytorium kodu
-- **Docker**: Konteneryzacja do łatwego wdrażania i testowania
-- **Jest**: Testowanie komponentów i logiki frontendu
-- **ESLint**: Lintowanie kodu JavaScript
-- **PM2**: Zarządzanie procesami Node.js
-- **Heroku/Vercel/Netlify**: Hosting backendu i/lub frontendu
+- **Testowanie**: Flutter test/JUnit (Kotlin)
+- **ESLint/ktlint**: Lintowanie kodu Dart/Kotlin
+- **Docker**: Jeśli wdrożenie wymaga backendu
+- **Hosting backendu**: Heroku, Railway, Firebase Functions
 
 ### Adekwatność do zrealizowania
 
@@ -215,20 +214,20 @@ Projekt jest **dobrze dopasowany** do realizacji przez zespół studencki w trak
 
 **Plusy realizacji:**
 - **Wyraźny zakres projektu**: Funkcjonalności są konkretne i mierzalne
-- **Modułowość**: Możliwość wydzielania zadań na backend, frontend i integracje
-- **Popularne technologie**: Node.js, React, MongoDB znane i szeroko dokumentowane
+- **Modułowość**: Możliwość wydzielania zadań na wersję Flutter, Kotlin oraz integracje
+- **Popularne technologie mobilne**: Flutter (Dart) i Kotlin są popularne i dobrze udokumentowane
 - **Elastyczność**: Łatwość rozbudowy o kolejne funkcje i raporty
 
 **Plan realizacji (fazy):**
-1. **Faza 1 (1-2 tygodnie)**: Setup projektu, podstawowa struktura aplikacji i repozytorium
+1. **Faza 1 (1-2 tygodnie)**: Setup projektu, podstawowa struktura aplikacji mobilnej (Flutter/Kotlin)
 2. **Faza 2 (2-3 tygodnie)**: Implementacja modułu dodawania produktów oraz listy magazynowej
 3. **Faza 3 (2-3 tygodnie)**: Historia operacji oraz system powiadomień
 4. **Faza 4 (2 tygodnie)**: Integracje, testy jednostkowe, pierwsze raporty
 5. **Faza 5 (1-2 tygodnie)**: Poprawki wybranych funkcji, dokumentacja, wdrożenie
 
 **Wymagany zespół:** 
-- 1 osoba - backend (Node.js, Express, MongoDB)
-- 1 osoba - frontend (React, Material-UI)
-- 1 osoba - testowanie i dokumentacja, Docker, integracje
+- 1 osoba - Flutter (Dart)
+- 1 osoba - Kotlin (Android)
+- 1 osoba - testowanie i dokumentacja, integracje
 
-Projekt stanowi doskonałą okazję do nauki nowoczesnych technologii webowych, pracy zespołowej i praktycznego poznania środowisk programistycznych oraz DevOps.
+Projekt pozwala nabyć praktyczne umiejętności związane z nowoczesnym developmentem mobilnym, synchronizacją danych i pracą zespołową. Minimalna wersja MVP pozwala na zarządzanie produktami magazynowymi na smartfonie.
