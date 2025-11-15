@@ -223,3 +223,29 @@ Projekt jest **bardzo dobrze dopasowany** do realizacji przez zespół studencki
 
 Projekt pozwala na wykorzystanie zarówno technologii frontendowych (HTML, CSS, JS), jak i backendowych (Python), co czyni go idealnym do nauki full-stack development. Minimalna wersja (MVP) może być gotowa w 6-8 tygodni, co mieści się w terminie do 15.11.
 
+Pomysł na aplikację: inventory-app
+
+Chciałbym przedstawić koncepcję aplikacji o nazwie inventory-app, która miałaby służyć do zarządzania zasobami - na przykład w firmie, magazynie czy innym miejscu, gdzie ważna jest ewidencja produktów.
+
+Założenia aplikacji:
+
+• Główne funkcje:
+
+• Możliwość dodawania nowych produktów do bazy danych z informacjami takimi jak nazwa, opis, kategoria i ilość.
+
+• Przeglądanie aktualnego stanu magazynu i szybkie wyszukiwanie produktów według różnych kryteriów.
+
+• Edytowanie danych produktów w przypadku np. zmiany ceny lub ilości.
+
+• Usuwanie produktów, które nie są już potrzebne.
+
+• Monitorowanie historii zmian, aby mieć pełną kontrolę nad ruchem towaru.
+
+• Cel aplikacji:Ułatwienie pracy osobom zajmującym się gospodarką magazynową poprzez przejrzysty dostęp do wszystkich kluczowych informacji. Projekt pozwoli efektywnie kontrolować stany magazynowe, planować zamówienia i zarządzać rotacją produktów.
+
+• Możliwość rozbudowy:W przyszłości aplikację będzie można rozszerzyć o dodatkowe funkcje, np. powiadomienia o niskim stanie magazynowym lub integrację z systemem fakturowania.
+
+• Intuicyjność:Interfejs będzie prosty i czytelny zarówno dla osób pracujących indywidualnie, jak i dla całych zespołów odpowiedzialnych za zarządzanie zasobami.
+
+Podsumowanie:Inventory-app byłaby praktycznym narzędziem do efektywnego zarządzania produktami i materiałami w magazynie lub biurze. Dzięki niej proces ewidencji oraz monitorowania zasobów stanie się prostszy, szybszy i mniej podatny na błędy.
+
