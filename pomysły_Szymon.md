@@ -136,7 +136,7 @@ Projekt jest **bardzo dobrze dopasowany** do realizacji przez zespół studencki
 - 1 osoby - backend (TypeScript)
 - 1 osoba - baza danych i integracje
 
-Projekt pozwala na wykorzystanie zarówno technologii frontendowych (HTML, CSS, JS), jak i backendowych (Python), co czyni go idealnym do nauki full-stack development. Minimalna wersja (MVP) może by�[...]
+Projekt pozwala na wykorzystanie zarówno technologii frontendowych (HTML, CSS, JS), jak i backendowych (TypeScript), co czyni go idealnym do nauki full-stack development.
 
 
 ---
