@@ -1,4 +1,4 @@
-# Pomysły na projekt - Szymon
+# Pomysły na projekt - Szymon Przybysz
 ## Pomysł 1: Aplikacja webowa do szczegółowego planowania podróży
 
 ### Opis projektu
@@ -72,18 +72,20 @@ Kompleksowa aplikacja webowa służąca do planowania i organizacji wszystkich a
 - **Utrzymanie**: Wymaga aktualizacji baz danych atrakcji i miejsc
 
 ### Narzędzia w użyciu
+
 #### Frontend
 - **HTML5**: Struktura semantyczna aplikacji
 - **CSS3** + **Tailwind CSS** lub **Bootstrap**: Responsywny design i stylizacja
-- **JavaScript (ES6+)**: Logika interfejsu użytkownika i interakcje
+- **JavaScript (ES6+) / TypeScript**: Logika interfejsu użytkownika i interakcje
 - **React.js** lub **Vue.js**: Framework do budowy komponentowego UI
 - **Leaflet.js** lub **Google Maps API**: Interaktywne mapy do wizualizacji lokalizacji
 
-#### Backend
-- **Python 3.x**: Główny język backendu
-- **Flask** lub **Django**: Framework webowy do obsługi API i logiki biznesowej
-- **SQLAlchemy**: ORM do komunikacji z bazą danych
-- **Flask-RESTful** lub **Django REST Framework**: Tworzenie RESTful API
+#### Backend (TypeScript)
+- **Node.js**: Środowisko uruchomieniowe
+- **Express.js**: Framework webowy do obsługi API i logiki biznesowej, napisany w TypeScript
+- **TypeORM** albo **Prisma**: ORM do komunikacji z bazą danych za pomocą TypeScript
+- **Express-RESTful**: Tworzenie RESTful API w TypeScript
+- **Biblioteki do walidacji i bezpieczeństwa (class-validator, express-jwt, bcryptjs itp.)**
 
 #### Baza danych
 - **PostgreSQL**: Relacyjna baza danych do przechowywania danych podróży
@@ -91,8 +93,8 @@ Kompleksowa aplikacja webowa służąca do planowania i organizacji wszystkich a
 
 #### Uwierzytelnianie i bezpieczeństwo
 - **JWT (JSON Web Tokens)**: Token-based authentication
-- **Flask-Login** lub **Django AllAuth**: Zarządzanie sesjami użytkowników
-- **Bcrypt**: Hashowanie haseł
+- **Passport.js / express-session / OAuth2**: Zarządzanie sesjami i logowaniem
+- **bcryptjs**: Hashowanie haseł
 - **HTTPS/SSL**: Szyfrowanie połączeń
 
 #### Dodatkowe narzędzia
@@ -105,13 +107,13 @@ Kompleksowa aplikacja webowa służąca do planowania i organizacji wszystkich a
 #### Development & Deployment
 - **Version Control**: Git + GitHub
 - **Frontend Build**: Webpack lub Vite
-- **Package Manager**: npm lub yarn (JS), pip (Python)
-- **Testowanie**: Jest (frontend), Pytest (backend)
-- **Linting**: ESLint (JS), Pylint/Flake8 (Python)
+- **Package Manager**: npm lub yarn
+- **Testowanie**: Jest (frontend i backend, TypeScript)
+- **Linting**: ESLint (JS/TS)
 - **Hosting**: 
   - Frontend: Vercel, Netlify lub GitHub Pages
-  - Backend: Heroku, Railway lub PythonAnywhere
-  - Baza danych: ElephantSQL (PostgreSQL) lub Heroku Postgres
+  - Backend: Railway, Heroku, Render lub Vercel
+  - Baza danych: ElephantSQL (PostgreSQL) lub Railway/Heroku Postgres
 
 ### Adekwatność do zrealizowania
 Projekt jest **bardzo dobrze dopasowany** do realizacji przez zespół studencki w ciągu semestru:
@@ -119,7 +121,7 @@ Projekt jest **bardzo dobrze dopasowany** do realizacji przez zespół studencki
 **Plusy realizacji:**
 - **Jasno zdefiniowany zakres**: Funkcjonalności są konkretne i dobrze określone
 - **Modułowość**: Można realizować poszczególne moduły (transport, zakwaterowanie, atrakcje) niezależnie
-- **Popularne technologie**: HTML, CSS, JavaScript i Python są dobrze znane i udokumentowane
+- **Popularne technologie**: HTML, CSS, JavaScript, TypeScript są dobrze znane i udokumentowane
 - **Stopniowy rozwój**: Możliwość stworzenia MVP z podstawowymi funkcjami i rozbudowy w kolejnych iteracjach
 - **Realny problem**: Projekt rozwiązuje rzeczywisty problem, co zwiększa motywację zespołu
 - **Portfolio**: Końcowy produkt może być wartościowym elementem portfolio
@@ -133,18 +135,17 @@ Projekt jest **bardzo dobrze dopasowany** do realizacji przez zespół studencki
 
 **Wymagany zespół**: 
 - 1 osoby - frontend (HTML/CSS/JavaScript/React/TypeScript)
-- 1 osoby - backend (TypeScript)
+- 1 osoby - backend (TypeScript, Node.js, Express)
 - 1 osoba - baza danych i integracje
 
-Projekt pozwala na wykorzystanie zarówno technologii frontendowych (HTML, CSS, JS), jak i backendowych (Python), co czyni go idealnym do nauki full-stack development. Minimalna wersja (MVP) może by�[...]
-
+Projekt pozwala na wykorzystanie zarówno technologii frontendowych (HTML, CSS, JS/TS), jak i backendowych (TypeScript), co czyni go idealnym do nauki full-stack development. Minimalna wersja (MVP) może być
 
 ---
 
 ## Pomysł 2: Aplikacja webowa do inwentaryzacji zasobów magazynowych
 
 ### Opis projektu
-Aplikacja webowa przeznaczona do efektywnego zarządzania zasobami i produktami magazynowymi. System umożliwia ewidencjonowanie produktów, kontrolę stanów magazynowych, rejestrowanie przepływu towarów i usprawnienie pracy zespołów odpowiedzialnych za gospodarkę magazynową.
+Aplikacja webowa przeznaczona do efektywnego zarządzania zasobami i produktami magazynowymi. System umożliwia ewidencjonowanie produktów, kontrolę stanów magazynowych, rejestrowanie przepływu to[...]
 
 ### Problem, który rozwiązuje
 - Chaos oraz zagubione informacje o produktach i ich ilości w magazynie
