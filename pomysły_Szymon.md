@@ -2,7 +2,7 @@
 ## Pomysł 1: Aplikacja webowa do szczegółowego planowania podróży
 
 ### Opis projektu
-Kompleksowa aplikacja webowa służąca do planowania i organizacji wszystkich aspektów podróży. System umożliwia zarządzanie transportem, zakwaterowaniem, atrakcjami turystycznymi oraz listami pakowania. Aplikacja zapewnia centralne miejsce do przechowywania wszystkich informacji związanych z podróżą, włączając rezerwacje, koszty, harmonogram i niezbędne dokumenty.
+Kompleksowa aplikacja webowa służąca do planowania i organizacji wszystkich aspektów podróży. System umożliwia zarządzanie transportem, zakwaterowaniem, atrakcjami turystycznymi oraz listami p[...]
 
 ### Problem, który rozwiązuje
 - Rozproszenie informacji o podróży w różnych miejscach (maile, notatki, zdjęcia)
@@ -136,49 +136,98 @@ Projekt jest **bardzo dobrze dopasowany** do realizacji przez zespół studencki
 - 1 osoby - backend (TypeScript)
 - 1 osoba - baza danych i integracje
 
-Projekt pozwala na wykorzystanie zarówno technologii frontendowych (HTML, CSS, JS), jak i backendowych (Python), co czyni go idealnym do nauki full-stack development. Minimalna wersja (MVP) może być gotowa w 6-8 tygodni, co mieści się w terminie do 
+Projekt pozwala na wykorzystanie zarówno technologii frontendowych (HTML, CSS, JS), jak i backendowych (Python), co czyni go idealnym do nauki full-stack development. Minimalna wersja (MVP) może by�[...]
 
 
 ---
 
+## Pomysł 2: Aplikacja webowa do inwentaryzacji zasobów magazynowych
 
-2. Pomysł na aplikację do Inwentaryzacji
+### Opis projektu
+Aplikacja webowa przeznaczona do efektywnego zarządzania zasobami i produktami magazynowymi. System umożliwia ewidencjonowanie produktów, kontrolę stanów magazynowych, rejestrowanie przepływu towarów i usprawnienie pracy zespołów odpowiedzialnych za gospodarkę magazynową.
 
-Opis projektu
+### Problem, który rozwiązuje
+- Chaos oraz zagubione informacje o produktach i ich ilości w magazynie
+- Brak szybkiego i łatwego dostępu do stanu magazynowego
+- Trudności w monitorowaniu historii operacji na produktach
+- Brak ostrzeżeń o niskim stanie magazynowym i ryzyku braków
+- Skomplikowane lub nieudokumentowane procedury zarządzania zapasami
+- Brak możliwości integracji z innymi systemami firmowymi
 
-Koncepcja aplikacji do zarządzania zasobami magazynowymi, stworzonej z myślą o usprawnieniu ewidencjonowania produktów, kontroli stanów magazynowych i efektywnej pracy osób zajmujących się gospodarką magazynową.
+### Funkcjonalności
 
-Główne funkcjonalności
+#### 1. Zarządzanie produktami
+- Dodawanie nowych produktów z pełnym zakresem informacji (nazwa, opis, kategoria, ilość)
+- Edytowanie i usuwanie istniejących pozycji produktowych
+- Przeglądanie listy produktów z możliwością filtrowania wg kategorii, nazwy, dostępności
 
-• Dodawanie produktówUmożliwienie wprowadzania nowych produktów z informacjami takimi jak nazwa, opis, kategoria oraz ilość.
+#### 2. Kontrola stanów magazynowych
+- Szybkie sprawdzanie dostępności produktów
+- Wyszukiwanie produktów według różnych kryteriów
+- Oznaczanie produktów o niskim stanie magazynowym oraz powiadomienia
 
-• Przeglądanie stanu magazynowegoSzybka możliwość sprawdzania dostępności produktów oraz ich wyszukiwania według różnych kryteriów.
+#### 3. Historia operacji
+- Rejestrowanie każdej operacji (dodanie, edycja, usunięcie, wydanie, zwrot)
+- Przegląd oraz filtrowanie historii według daty, produktu, typu operacji
 
-• Edytowanie i usuwanie produktówOpcja aktualizacji informacji o produktach oraz usuwania zbędnych pozycji.
+#### 4. Możliwość rozbudowy
+- Integracja z zewnętrznymi systemami (np. systemy ERP)
+- Rozszerzenie funkcjonalności o automatyczne powiadomienia SMS/email
+- Dodatkowe raporty i statystyki przepływu magazynowego
 
-• Historia zmianLogowanie operacji na produktach w celu monitorowania przepływu towaru.
+### Zalety
+- **Centralizacja**: Wszystkie dane produktowe w jednym miejscu
+- **Szybkość i wygoda**: Błyskawiczny dostęp do informacji oraz stanów magazynowych
+- **Elastyczność**: Możliwość dodawania nowych funkcji wraz z rozwojem biznesu
+- **Historia operacji**: Pełna kontrola i audyt przepływu towarów w magazynie
+- **Intuicyjność**: Prosty, szybki i responsywny interfejs
+- **Powiadomienia**: Automatyczne ostrzeżenia o niskim stanie magazynowym
 
-• Możliwość rozbudowyOtwartość na dodawanie funkcjonalności, takich jak powiadomienia o niskim stanie magazynowym lub integracja z innymi systemami.
+### Wady
+- **Brak rozbudowanych funkcji integracji**: Podstawowa wersja wymaga ręcznego dodawania danych i operacji
+- **Konieczność wstępnej konfiguracji**: Należy zdefiniować kategorie, bazę produktową i użytkowników
+- **Konkurencja na rynku**: Wiele aplikacji magazynowych istnieje już komercyjnie jako SAAS
+- **Utrzymanie**: Wymaga regularnej aktualizacji oraz backupu danych
 
+### Narzędzia w użyciu
 
-Proponowane technologie
+#### Backend
+- **Node.js**: Środowisko uruchomieniowe JavaScript do logiki serwerowej
+- **Express.js**: Lekki framework do budowy API RESTful i obsługi operacji CRUD
+- **MongoDB**: Elastyczna, skalowalna baza NoSQL do przechowywania danych produktowych
 
-Backend
+#### Frontend
+- **React.js**: Biblioteka do budowy dynamicznego i komponentowego interfejsu
+- **Material-UI**: Gotowe komponenty UI, bazujące na Material Design, do szybkiego tworzenia estetycznych widoków
 
-• Node.jsPopularny środowisko uruchomieniowe dla JavaScript na serwerze. Szybkie, skalowalne, szeroko wspierane przez społeczność.
+#### Dodatkowe narzędzia
+- **Git & GitHub**: Kontrola wersji i repozytorium kodu
+- **Docker**: Konteneryzacja do łatwego wdrażania i testowania
+- **Jest**: Testowanie komponentów i logiki frontendu
+- **ESLint**: Lintowanie kodu JavaScript
+- **PM2**: Zarządzanie procesami Node.js
+- **Heroku/Vercel/Netlify**: Hosting backendu i/lub frontendu
 
-• Express.jsLekki framework dla Node.js, umożliwiający tworzenie API REST do obsługi operacji CRUD (Create, Read, Update, Delete).
+### Adekwatność do zrealizowania
 
-• MongoDBNoSQL baza danych - elastyczna, dobrze nadaje się do przechowywania dokumentów produktów, łatwo skalowalna.
+Projekt jest **dobrze dopasowany** do realizacji przez zespół studencki w trakcie jednego semestru:
 
-Frontend
+**Plusy realizacji:**
+- **Wyraźny zakres projektu**: Funkcjonalności są konkretne i mierzalne
+- **Modułowość**: Możliwość wydzielania zadań na backend, frontend i integracje
+- **Popularne technologie**: Node.js, React, MongoDB znane i szeroko dokumentowane
+- **Elastyczność**: Łatwość rozbudowy o kolejne funkcje i raporty
 
-• ReactNowoczesna biblioteka JavaScript do budowy interfejsów użytkownika. Umożliwia tworzenie dynamicznych i responsywnych aplikacji webowych.
+**Plan realizacji (fazy):**
+1. **Faza 1 (1-2 tygodnie)**: Setup projektu, podstawowa struktura aplikacji i repozytorium
+2. **Faza 2 (2-3 tygodnie)**: Implementacja modułu dodawania produktów oraz listy magazynowej
+3. **Faza 3 (2-3 tygodnie)**: Historia operacji oraz system powiadomień
+4. **Faza 4 (2 tygodnie)**: Integracje, testy jednostkowe, pierwsze raporty
+5. **Faza 5 (1-2 tygodnie)**: Poprawki wybranych funkcji, dokumentacja, wdrożenie
 
-• Material-UIBiblioteka komponentów UI oparta na designie Material Design od Google, przyspieszająca proces tworzenia estetycznego interfejsu.
+**Wymagany zespół:** 
+- 1 osoba - backend (Node.js, Express, MongoDB)
+- 1 osoba - frontend (React, Material-UI)
+- 1 osoba - testowanie i dokumentacja, Docker, integracje
 
-Narzędzia dodatkowe
-
-• Git & GitHubSystem kontroli wersji i platforma do współpracy zespołowej oraz hostowania kodu.
-
-• DockerNarzędzie do konteneryzacji aplikacji, co ułatwia wdrażanie i testowanie w różnych środowiskach.
+Projekt stanowi doskonałą okazję do nauki nowoczesnych technologii webowych, pracy zespołowej i praktycznego poznania środowisk programistycznych oraz DevOps.
