@@ -8,31 +8,30 @@ import {
   reverseGeocode,
   scrapeBookingUrl,
 } from '../controllers/stopController';
-import { authenticateToken } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import { createStopSchema, updateStopSchema } from '../schemas/stop.schema';
 
 const router = express.Router();
 
 // Get all stops for a journey
-router.get('/journey/:journeyId', authenticateToken, getStopsByJourneyId);
+router.get('/journey/:journeyId', getStopsByJourneyId);
 
 // Get single stop by ID
-router.get('/:id', authenticateToken, getStopById);
+router.get('/:id', getStopById);
 
 // Create stop for a journey (params + body validation)
-router.post('/journey/:journeyId', authenticateToken, validate(createStopSchema), createStop);
+router.post('/journey/:journeyId', validate(createStopSchema), createStop);
 
 // Update stop (params + body validation)
-router.put('/:id', authenticateToken, validate(updateStopSchema), updateStop);
+router.put('/:id', validate(updateStopSchema), updateStop);
 
 // Delete stop
-router.delete('/:id', authenticateToken, deleteStop);
+router.delete('/:id', deleteStop);
 
 // Reverse geocoding - coordinates to address
-router.post('/reverse-geocode', authenticateToken, reverseGeocode);
+router.post('/reverse-geocode', reverseGeocode);
 
 // Scrape Booking.com URL
-router.post('/scrape-booking', authenticateToken, scrapeBookingUrl);
+router.post('/scrape-booking', scrapeBookingUrl);
 
 export default router;

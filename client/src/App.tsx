@@ -1,21 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, MapPin, Calendar, DollarSign, Plane, Train, Bus, Car, Menu, X, Trash2, Edit2, CheckCircle2, XCircle, Settings, LogOut, User, Users, Share2, ChevronDown, ChevronRight, Eye, DownloadCloud, FileText, ListOrdered } from 'lucide-react';
+import { Plus, MapPin, Calendar, DollarSign, Plane, Train, Bus, Car, Menu, X, Trash2, Edit2, CheckCircle2, XCircle, Settings, LogOut, User, Users, ChevronDown, ChevronRight, Eye, DownloadCloud, FileText, ListOrdered } from 'lucide-react';
 import JourneyMapWrapper from './components/JourneyMapWrapper';
-import ImportMapModal from './components/ImportMapModal';
 import { PaymentCheckbox } from './components/PaymentCheckbox';
 import { ToastContainer, useToast } from './components/Toast';
 import ConfirmDialog from './components/ConfirmDialog';
-import ManageSharesModal from './components/ManageSharesModal';
 import { useConfirm } from './hooks/useConfirm';
 import type { Journey, Stop, Transport, Attraction, ChecklistItem } from './types/journey';
-import { journeyService, stopService, attractionService, transportService, journeyShareService, attachmentService } from './services/api';
+import { journeyService, stopService, attractionService, transportService } from './services/api';
 import { getRates } from './services/currencyApi';
-import { socketService } from './services/socket';
 import { getAttractionTagInfo, getAvailableAttractionTags } from './utils/attractionTags';
 import { parseYMDToDate, toYMD, formatYMDForDisplay } from './utils/date';
 // Payment calculation helpers (unused directly here) are available in services/utils; import when needed.
-import { useAuth } from './contexts/AuthContext';
 import { geocodeAddress } from './services/geocoding';
 
 // Helper function to format date to YYYY-MM-DD
@@ -64,173 +60,27 @@ const formatDateTimeForDisplay = (date: Date | string | undefined): string => {
 };
 
 function App() {
-  const { user, logout } = useAuth();
+  // MVP - no authentication, use dummy user
+  const user = { id: 1, username: 'guest', email: 'guest@example.com' };
+  const logout = () => { };
   const { toasts, closeToast, success, error, warning, info } = useToast();
   const confirmHook = useConfirm();
   const [journeys, setJourneys] = useState<Journey[]>([]);
   const [journeySearch, setJourneySearch] = useState<string>('');
   const [journeyPage, setJourneyPage] = useState<number>(1);
   const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
-  const [attachments, setAttachments] = useState<any[]>([]);
-  // For file upload UI: keep server-side attachment persistent after upload
+  const [loading, setLoading] = useState(false);
+  // Attachments removed in MVP
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewTitle, setPreviewTitle] = useState<string | null>(null);
-  
-  // Open preview for an attachment. For PDFs we use iframe (previewUrl).
-  // For other types, backend may provide HTML. If the file is a DOCX, try
-  // client-side conversion using `mammoth` for a nicer visual preview.
-  const openAttachmentPreview = async (att: any) => {
-    try {
-      const preview = await attachmentService.viewAttachment(att.id);
-      const filename = (att.originalFilename || '').toLowerCase();
-      if (preview.type === 'pdf' || (preview.url && preview.type === 'pdf')) {
-        setPreviewUrl(preview.url);
-        setPreviewTitle(att.originalFilename || preview.title || 'Preview');
-        setPreviewHtml(null);
-        setPreviewOpen(true);
-        return;
-      }
-
-      // If it's a docx and we have a URL, try to fetch and convert with mammoth
-      if ((preview.type === 'docx' || filename.endsWith('.docx')) && preview.url) {
-        try {
-          const mammoth = await import('mammoth');
-          const res = await fetch(preview.url);
-          const arrayBuffer = await res.arrayBuffer();
-          // Use styleMap to improve readability: add paragraph breaks, bold headings, table borders
-          const result = await mammoth.convertToHtml({ arrayBuffer }, {
-            styleMap: [
-              "p => p:fresh ",
-              "b => strong",
-              "i => em",
-              "table => table.table-auto border border-gray-300 dark:border-gray-600 my-4",
-              "tr => tr border-b border-gray-200 dark:border-gray-700",
-              "td => td px-2 py-1 border border-gray-200 dark:border-gray-700",
-              "th => th px-2 py-1 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 font-semibold",
-              "h1 => h1 text-xl font-bold mt-4 mb-2",
-              "h2 => h2 text-lg font-bold mt-3 mb-1",
-              "h3 => h3 text-base font-semibold mt-2 mb-1"
-            ]
-          });
-          // Add extra CSS for better spacing and readability
-          const styledHtml = `
-            <style>
-              .docx-preview p { margin: 0.5em 0; }
-              .docx-preview table { border-collapse: collapse; width: 100%; margin: 1em 0; }
-              .docx-preview th, .docx-preview td { border: 1px solid #ccc; padding: 0.4em 0.7em; }
-              .docx-preview th { background: #f3f4f6; font-weight: 600; }
-              .dark .docx-preview th { background: #23232b; color: #fff; }
-              .docx-preview h1, .docx-preview h2, .docx-preview h3 { margin-top: 1em; margin-bottom: 0.5em; }
-            </style>
-            <div class="docx-preview">${result.value}</div>
-          `;
-          setPreviewHtml(styledHtml);
-          setPreviewTitle(att.originalFilename || 'Document');
-          setPreviewUrl(null);
-          setPreviewOpen(true);
-          return;
-        } catch (e) {
-          // fallthrough to server-provided HTML if conversion fails
-          console.warn('mammoth conversion failed, falling back to server HTML', e);
-        }
-      }
-
-      // Default: server-provided HTML (if any) or a simple message
-      setPreviewHtml(preview.html || '<div class="text-sm text-gray-500">No preview available</div>');
-      setPreviewTitle(att.originalFilename || 'Preview');
-      setPreviewUrl(null);
-      setPreviewOpen(true);
-    } catch (e: any) {
-      error(e?.message || 'Failed to preview');
-    }
-  };
-  // Helper: fetch full journey from server (authoritative data)
-  const refreshJourneyFromServer = async (journeyId: number, setSelected = false) => {
-    try {
-      const fresh = await journeyService.getJourneyById(journeyId);
-      setJourneys(prev => prev.map(j => j.id === fresh.id ? fresh : j));
-      if (setSelected || selectedJourney?.id === fresh.id) setSelectedJourney(fresh);
-      return fresh;
-    } catch (err) {
-      // If we can't fetch, return null and let client compute as fallback
-      console.warn('Failed to refresh journey from server', err);
-      return null;
-    }
-  };
-
-  const handleImportComplete = async (result: { createdStops: any[]; createdAttractions: any[] }) => {
-    try {
-      const total = (result.createdStops?.length || 0) + (result.createdAttractions?.length || 0);
-      if (selectedJourney?.id) {
-        await refreshJourneyFromServer(selectedJourney.id);
-      }
-      success(`Imported ${total} items`);
-    } catch (e: any) {
-      console.error('Import completed but refresh failed', e);
-      success('Import finished');
-    }
-  };
-
-  // Find journey id for a stop id from local state cache
-  const journeyIdFromStop = (stopId: number): number | null => {
-    const j = journeys.find(j => (j.stops || []).some(s => s.id === stopId));
-    return j ? (j.id ?? null) : null;
-  };
-
-  const journeyIdFromAttractionId = (attractionId: number): number | null => {
-    const j = journeys.find(j => (j.stops || []).some(s => (s.attractions || []).some(a => a.id === attractionId)));
-    return j ? (j.id ?? null) : null;
-  };
-
-  useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        try { window.URL.revokeObjectURL(previewUrl); } catch (e) { /* noop */ }
-      }
-    };
-  }, [previewUrl]);
-  const [extractModalOpen, setExtractModalOpen] = useState(false);
-  const [importModalOpen, setImportModalOpen] = useState(false);
-  const [extractResult, setExtractResult] = useState<any | null>(null);
-  const [openStopAttachments, setOpenStopAttachments] = useState<Record<number, boolean>>({});
-  const [openTransportAttachments, setOpenTransportAttachments] = useState<Record<number, boolean>>({});
-    const [openAttractions, setOpenAttractions] = useState<Record<number, boolean>>({});
-
-    // Ensure attractions are expanded by default if present
-    useEffect(() => {
-      if (selectedJourney?.stops) {
-        setOpenAttractions(prev => {
-          const updated: Record<number, boolean> = { ...prev };
-          (selectedJourney.stops || []).forEach(stop => {
-            if (stop.id != null) {
-              if (stop.attractions && stop.attractions.length > 0 && !(stop.id in updated)) {
-                updated[stop.id] = true;
-              } else if ((!stop.attractions || stop.attractions.length === 0) && !(stop.id in updated)) {
-                updated[stop.id] = false;
-              }
-            }
-          });
-          return updated;
-        });
-      }
-    }, [selectedJourney?.stops]);
-  const transportFileRef = useRef<HTMLInputElement | null>(null);
-  const stopFileRef = useRef<HTMLInputElement | null>(null);
-  const allowedPreviewTypes = '.pdf,.doc,.docx';
-  const allowedFileTypes = allowedPreviewTypes; // alias used in file input `accept`
-  const [uploadingAttachment, setUploadingAttachment] = useState<any | null>(null);
+  const [previewTitle, setPreviewTitle] = useState('');
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [showNewJourneyForm, setShowNewJourneyForm] = useState(false);
-  const [showStopForm, setShowStopForm] = useState(false);
-  const [showTransportForm, setShowTransportForm] = useState(false);
+  const [extractModalOpen, setExtractModalOpen] = useState(false);
+  const [extractResult, setExtractResult] = useState<any>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [bookingUrl, setBookingUrl] = useState('');
-  const [editBookingUrl, setEditBookingUrl] = useState('');
-  
-  const [newJourney, setNewJourney] = useState<Partial<Journey>>({
+  const [newJourney, setNewJourney] = useState<Journey>({
     title: '',
     description: '',
     startDate: '',
@@ -240,23 +90,27 @@ function App() {
     transports: [],
   });
 
-  const [newStop, setNewStop] = useState<Partial<Stop>>({
+  const [newStop, setNewStop] = useState<Stop>({
     city: '',
     country: '',
-    latitude: 51.505,
-    longitude: -0.09,
-    addressStreet: '',
-    addressHouseNumber: '',
-    postalCode: '',
     arrivalDate: '',
     departureDate: '',
+    latitude: undefined as any,
+    longitude: undefined as any,
     accommodationName: '',
     accommodationUrl: '',
     accommodationPrice: 0,
     accommodationCurrency: 'PLN',
+    isPaid: false,
+    addressStreet: '',
+    addressHouseNumber: '',
+    postalCode: '',
+    checkInTime: '',
+    checkOutTime: '',
+    attractions: [],
   });
 
-  const [newTransport, setNewTransport] = useState<Partial<Transport>>({
+  const [newTransport, setNewTransport] = useState<Transport>({
     type: 'flight',
     fromLocation: '',
     toLocation: '',
@@ -264,49 +118,44 @@ function App() {
     arrivalDate: '',
     price: 0,
     currency: 'PLN',
-    bookingUrl: '',
+    isPaid: false,
     flightNumber: '',
     trainNumber: '',
   });
 
-  const [newAttraction, setNewAttraction] = useState<Partial<Attraction>>({
+  const [newAttraction, setNewAttraction] = useState<Attraction>({
     name: '',
     description: '',
     estimatedCost: 0,
-    duration: '',
+    currency: 'PLN',
+    bookingDate: '',
+    startTime: '',
+    endTime: '',
+    addressStreet: '',
+    addressHouseNumber: '',
+    addressPostalCode: '',
+    addressCity: '',
+    addressCountry: '',
+    isPaid: false,
   });
-  const [geocodingAttraction, setGeocodingAttraction] = useState(false);
 
-  const [selectedStopForAttraction, setSelectedStopForAttraction] = useState<number | null>(null);
-  const [showAttractionForm, setShowAttractionForm] = useState(false);
+  // Attachments removed in MVP
 
-  const [editingStop, setEditingStop] = useState<Stop | null>(null);
-  const [showEditStopForm, setShowEditStopForm] = useState(false);
-  
-  const [editingTransport, setEditingTransport] = useState<Transport | null>(null);
-  const [showEditTransportForm, setShowEditTransportForm] = useState(false);
-  
-  const [editingAttraction, setEditingAttraction] = useState<Attraction | null>(null);
-  const [showEditAttractionForm, setShowEditAttractionForm] = useState(false);
-  const [editingAttractionStopId, setEditingAttractionStopId] = useState<number | null>(null);
-  const [geocodingEditAttraction, setGeocodingEditAttraction] = useState(false);
-
-  const [editingJourney, setEditingJourney] = useState<Journey | null>(null);
-  const [showEditJourneyForm, setShowEditJourneyForm] = useState(false);
-  // Currency rates cache for client-side conversions
-  const [ratesCache, setRatesCache] = useState<any>(null);
-
+  // Initial load (MVP: no auth, no sockets)
   useEffect(() => {
-    // Load rates for PLN by default (so UI that is not showing a specific journey
-    // can still display converted totals). When a journey is selected the other
-    // effect below will load rates for that journey's currency.
+    void loadJourneys(journeyPage, journeySearch);
+    // We removed Socket.IO integration in the backend, so skip connecting here to avoid WS errors.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [journeyPage, journeySearch]);
+
+  // Load rates for default and selected journey currencies
+  useEffect(() => {
     let mounted = true;
     const loadDefault = async () => {
       try {
         const data = await getRates('PLN');
         if (mounted) setRatesCache(data);
       } catch (e) {
-        // ignore - UI will show original amounts if conversion unavailable
         console.warn('Failed to load default PLN rates', e);
       }
     };
@@ -314,7 +163,6 @@ function App() {
     return () => { mounted = false; };
   }, []);
 
-  // When a journey is selected, fetch rates for its main currency so client-side conversions work
   useEffect(() => {
     let mounted = true;
     const loadForJourney = async () => {
@@ -330,94 +178,9 @@ function App() {
     return () => { mounted = false; };
   }, [selectedJourney?.id, selectedJourney?.currency]);
 
-  // Load attachments for currently selected journey
-  useEffect(() => {
-    let mounted = true;
-    const loadAttachments = async () => {
-      if (!selectedJourney?.id) {
-        if (mounted) setAttachments([]);
-        return;
-      }
-      try {
-        const list = await attachmentService.listAttachmentsForJourney(selectedJourney.id);
-        if (mounted) setAttachments(list);
-      } catch (e) {
-        console.warn('Failed to load attachments', e);
-      }
-    };
-    void loadAttachments();
-    return () => { mounted = false; };
-  }, [selectedJourney?.id]);
+  // Attachments removed in MVP
 
-  const toggleStopAttachments = (stopId: number) => setOpenStopAttachments(prev => ({ ...prev, [stopId]: !prev[stopId] }));
-  const toggleTransportAttachments = (transportId: number) => setOpenTransportAttachments(prev => ({ ...prev, [transportId]: !prev[transportId] }));
-
-  const renderAttachmentRow = (att: any) => (
-    <div key={att.id} className="flex items-center justify-between bg-gray-50 dark:bg-[#1c1c1e] px-4 h-12 rounded-md border border-gray-200 dark:border-[#38383a]">
-      <div className="min-w-0 mr-2">
-        <div className="font-medium text-black dark:text-white truncate">{att.originalFilename}</div>
-        <div className="text-xs text-black/60 dark:text-white/60">{att.mimeType} • {Math.round((att.fileSize || att.file_size || 0) / 1024)} KB</div>
-      </div>
-      <div className="flex items-center gap-2">
-        <button onClick={() => void openAttachmentPreview(att)} title="Preview" className="text-gray-500 hover:text-gray-700"><Eye className="w-5 h-5" /></button>
-        <button onClick={async () => { try { await attachmentService.downloadAttachment(att.id, att.originalFilename); } catch (e) { error('Failed to download attachment'); } }} title="Download" className="text-gray-500 hover:text-gray-700"><DownloadCloud className="w-5 h-5"/></button>
-        <button onClick={async () => { try { if (!(await confirmHook.confirm({ title: 'Delete', message: 'Delete attachment?' }))) return; await attachmentService.deleteAttachment(att.id); setAttachments(prev => prev.filter(a => a.id !== att.id)); success('Attachment deleted'); } catch (e) { error('Failed to delete'); } }} title="Delete" className="text-red-600 hover:text-red-700"><Trash2 className="w-5 h-5"/></button>
-
-        {/* Extract data button - will call backend extract and open extract modal; when an item is being edited apply parsed fields */}
-        <button onClick={async () => {
-          try {
-            const shouldAssign = false;
-            const resp = await attachmentService.extractAttachmentData(att.id, shouldAssign);
-            const parsed = resp?.parsed || resp;
-            setExtractResult(parsed);
-            setExtractModalOpen(true);
-
-            // If editing a stop, apply likely stop fields defensively
-            if (editingStop) {
-              const parsedAddress = parsed?.address || parsed?.addressStreet || '';
-              const parsedPostal = parsed?.addressPostcode || parsed?.postalCode || '';
-              const parsedHouse = parsed?.addressHouseNumber || '';
-              setEditingStop(prev => prev ? ({
-                ...prev,
-                accommodationName: parsed?.accommodationName || parsed?.hotelName || prev.accommodationName,
-                accommodationUrl: parsed?.accommodationUrl || prev.accommodationUrl,
-                city: parsed?.city || prev.city,
-                country: parsed?.country || prev.country,
-                addressStreet: parsed?.addressStreet || (parsedAddress ? parsedAddress : prev.addressStreet),
-                addressHouseNumber: parsedHouse || prev.addressHouseNumber,
-                postalCode: parsedPostal || prev.postalCode,
-                arrivalDate: parsed?.arrivalDate || prev.arrivalDate,
-                departureDate: parsed?.departureDate || prev.departureDate,
-                accommodationPrice: parsed?.accommodationPrice ?? parsed?.price?.amount ?? prev.accommodationPrice,
-                accommodationCurrency: parsed?.accommodationCurrency || parsed?.price?.currency || prev.accommodationCurrency,
-              }) : prev);
-              success('Extracted data applied to editing stop (please verify)');
-            }
-
-            // If editing a transport, apply likely transport fields defensively
-            if (editingTransport) {
-              setEditingTransport(prev => prev ? ({
-                ...prev,
-                flightNumber: parsed?.flightNumber || parsed?.pnr || prev.flightNumber,
-                trainNumber: parsed?.trainNumber || prev.trainNumber,
-                price: parsed?.price?.amount ?? parsed?.priceAmount ?? prev.price,
-                currency: parsed?.price?.currency || parsed?.priceCurrency || prev.currency,
-                fromLocation: parsed?.from || parsed?.fromLocation || prev.fromLocation,
-                toLocation: parsed?.to || parsed?.toLocation || prev.toLocation,
-                departureDate: parsed?.departureDate || prev.departureDate,
-                arrivalDate: parsed?.arrivalDate || prev.arrivalDate,
-              }) : prev);
-              success('Extracted data applied to editing transport (please verify)');
-            }
-
-          } catch (e) {
-            console.error(e);
-            error('Failed to extract data from attachment');
-          }
-        }} title="Extract data" className="text-gray-500 hover:text-gray-700"><FileText className="w-5 h-5"/></button>
-      </div>
-    </div>
-  );
+  // Attachments removed in MVP
 
   const getRate = (from: string, to: string): number | null => {
     try {
@@ -445,11 +208,33 @@ function App() {
     return amount * rate;
   };
 
-  // Share journey state
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [shareEmailOrUsername, setShareEmailOrUsername] = useState('');
-  const [shareRole, setShareRole] = useState<'view' | 'edit' | 'manage'>('edit');
-  const [showManageSharesModal, setShowManageSharesModal] = useState(false);
+  const [geocodingAttraction, setGeocodingAttraction] = useState(false);
+  const [showStopForm, setShowStopForm] = useState(false);
+  const [showTransportForm, setShowTransportForm] = useState(false);
+  const [bookingUrl, setBookingUrl] = useState('');
+  const [editBookingUrl, setEditBookingUrl] = useState('');
+  const [uploadingAttachment, setUploadingAttachment] = useState<any>(null);
+
+  const [selectedStopForAttraction, setSelectedStopForAttraction] = useState<number | null>(null);
+  const [showAttractionForm, setShowAttractionForm] = useState(false);
+
+  const [editingStop, setEditingStop] = useState<Stop | null>(null);
+  const [showEditStopForm, setShowEditStopForm] = useState(false);
+  
+  const [editingTransport, setEditingTransport] = useState<Transport | null>(null);
+  const [showEditTransportForm, setShowEditTransportForm] = useState(false);
+  
+  const [editingAttraction, setEditingAttraction] = useState<Attraction | null>(null);
+  const [showEditAttractionForm, setShowEditAttractionForm] = useState(false);
+  const [editingAttractionStopId, setEditingAttractionStopId] = useState<number | null>(null);
+  const [geocodingEditAttraction, setGeocodingEditAttraction] = useState(false);
+
+  const [editingJourney, setEditingJourney] = useState<Journey | null>(null);
+  const [showEditJourneyForm, setShowEditJourneyForm] = useState(false);
+  // Currency rates cache for client-side conversions
+  const [ratesCache, setRatesCache] = useState<any>(null);
+
+  // Sharing not available in MVP
 
   // UI state for collapsible sections
   const [stopsOpen, setStopsOpen] = useState<boolean>(true);
@@ -675,318 +460,7 @@ function App() {
     return conv != null ? `${amount} ${fromCurr} ≈ ${conv.toFixed(2)} ${(selectedJourney?.currency || 'PLN').toString().toUpperCase()}` : `${amount} ${fromCurr}`;
   };
 
-  useEffect(() => {
-    // Only load journeys if user is authenticated
-    if (user) {
-      void loadJourneys(journeyPage, journeySearch);
-    }
-    
-    // Connect to Socket.IO for real-time updates
-    socketService.connect();
-    
-    // Listen for journey events
-    socketService.on('journey:created', (journey: Journey) => {
-      console.log('Real-time: Journey created', journey);
-      setJourneys(prev => [...prev, journey]);
-      // Don't show toast - avoid duplicate notifications when user creates journey
-    });
-    
-    socketService.on('journey:updated', (journey: Journey) => {
-      console.log('Real-time: Journey updated', journey);
-      setJourneys(prev => prev.map(j => j.id === journey.id ? journey : j));
-      if (selectedJourney?.id === journey.id) {
-        setSelectedJourney(journey);
-      }
-      // Don't show toast - avoid duplicate notifications when user updates journey
-    });
-    
-    socketService.on('journey:deleted', ({ id }: { id: number }) => {
-      console.log('Real-time: Journey deleted', id);
-      setJourneys(prev => prev.filter(j => j.id !== id));
-      if (selectedJourney?.id === id) {
-        setSelectedJourney(null);
-      }
-      // Don't show toast - user gets local success message if they deleted it
-      // If another user deleted it, the journey just disappears from the list
-    });
-    
-
-    // Listen for stop events
-    socketService.on('stop:created', async (stop: Stop) => {
-      console.log('Real-time: Stop created', stop);
-      if (!stop.journeyId) return;
-      const refreshed = await refreshJourneyFromServer(stop.journeyId);
-      if (refreshed) return;
-
-      setJourneys(prev => prev.map(j => {
-        if (j.id === stop.journeyId) {
-          const updated = { ...j, stops: [...(j.stops || []), stop] } as Journey;
-          updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-          return updated;
-        }
-        return j;
-      }));
-      if (selectedJourney?.id === stop.journeyId) {
-        setSelectedJourney(prev => {
-          if (!prev) return null;
-          const updated = { ...prev, stops: [...(prev.stops || []), stop] } as Journey;
-          updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-          return updated;
-        });
-      }
-      // Notification only for real-time updates from other users
-    });
-    
-    socketService.on('stop:updated', async (stop: Stop) => {
-      console.log('Real-time: Stop updated', stop);
-      if (!stop.journeyId) return;
-      const refreshed = await refreshJourneyFromServer(stop.journeyId);
-      if (refreshed) return;
-
-      setJourneys(prev => prev.map(j => {
-        if (j.id === stop.journeyId) {
-          const updated = { 
-            ...j, 
-            stops: (j.stops || []).map(s => s.id === stop.id ? stop : s)
-          } as Journey;
-          updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-          return updated;
-        }
-        return j;
-      }));
-      if (selectedJourney?.id === stop.journeyId) {
-        setSelectedJourney(prev => {
-          if (!prev) return null;
-          const updated = { ...prev, stops: (prev.stops || []).map(s => s.id === stop.id ? stop : s) } as Journey;
-          updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-          return updated;
-        });
-      }
-      // Update editingStop if it's currently being edited
-      setEditingStop(prev => {
-        if (prev && prev.id === stop.id) {
-          return stop;
-        }
-        return prev;
-      });
-      // Removed duplicate notification - handled by manual actions
-    });
-    
-    socketService.on('stop:deleted', async ({ id }: { id: number }) => {
-      console.log('Real-time: Stop deleted', id);
-      const journeyId = journeyIdFromStop(id);
-      const refreshed = journeyId ? await refreshJourneyFromServer(journeyId) : null;
-      if (refreshed) return;
-
-      setJourneys(prev => prev.map(j => {
-        const updated = { ...j, stops: (j.stops || []).filter(s => s.id !== id) } as Journey;
-        updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-        return updated;
-      }));
-      if (selectedJourney) {
-        setSelectedJourney(prev => prev ? (() => {
-          const updated = { ...prev, stops: (prev.stops || []).filter(s => s.id !== id) } as Journey;
-          updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-          return updated;
-        })() : null);
-      }
-      warning('Stop deleted');
-    });
-    
-    // Listen for attraction events
-    socketService.on('attraction:created', async (attraction: Attraction) => {
-      console.log('Real-time: Attraction created', attraction);
-      if (!attraction.stopId) return;
-      const jId = journeyIdFromStop(attraction.stopId);
-      if (!jId) return;
-      const refreshed = await refreshJourneyFromServer(jId);
-      if (refreshed) return;
-
-      setJourneys(prev => prev.map(j => {
-        const updated = {
-          ...j,
-          stops: (j.stops || []).map(s => {
-            if (s.id === attraction.stopId) {
-              return { ...s, attractions: [...(s.attractions || []), attraction] };
-            }
-            return s;
-          })
-        } as Journey;
-        updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-        return updated;
-      }));
-      if (selectedJourney) {
-        setSelectedJourney(prev => prev ? (() => {
-          const updated = {
-            ...prev,
-            stops: (prev.stops || []).map(s => {
-              if (s.id === attraction.stopId) {
-                return { ...s, attractions: [...(s.attractions || []), attraction] };
-              }
-              return s;
-            })
-          } as Journey;
-          updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-          setSelectedJourney(updated);
-          return updated;
-        })() : null);
-      }
-      // Notification only for real-time updates from other users
-    });
-    
-    socketService.on('attraction:updated', async (attraction: Attraction) => {
-      console.log('Real-time: Attraction updated', attraction);
-      if (!attraction.id) return;
-      const jId = journeyIdFromAttractionId(attraction.id);
-      if (!jId) return;
-      const refreshed = await refreshJourneyFromServer(jId);
-      if (refreshed) return;
-
-      setJourneys(prev => prev.map(j => {
-        const updated = {
-          ...j,
-          stops: (j.stops || []).map(s => ({
-            ...s,
-            attractions: (s.attractions || []).map(a => a.id === attraction.id ? attraction : a)
-          }))
-        } as Journey;
-        updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-        return updated;
-      }));
-      if (selectedJourney) {
-        setSelectedJourney(prev => prev ? (() => {
-          const updated = {
-            ...prev,
-            stops: (prev.stops || []).map(s => ({
-              ...s,
-              attractions: (s.attractions || []).map(a => a.id === attraction.id ? attraction : a)
-            }))
-          } as Journey;
-          updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-          setSelectedJourney(updated);
-          return updated;
-        })() : null);
-      }
-      // Removed duplicate notification - handled by manual actions
-    });
-    
-    socketService.on('attraction:deleted', async ({ id }: { id: number }) => {
-      console.log('Real-time: Attraction deleted', id);
-      const journeyId = journeyIdFromAttractionId(id);
-      const refreshed = journeyId ? await refreshJourneyFromServer(journeyId) : null;
-      if (refreshed) return;
-
-      setJourneys(prev => prev.map(j => {
-        const updated = {
-          ...j,
-          stops: (j.stops || []).map(s => ({
-            ...s,
-            attractions: (s.attractions || []).filter(a => a.id !== id)
-          }))
-        } as Journey;
-        updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-        return updated;
-      }));
-      if (selectedJourney) {
-        setSelectedJourney(prev => prev ? (() => {
-          const updated = {
-            ...prev,
-            stops: (prev.stops || []).map(s => ({
-              ...s,
-              attractions: (s.attractions || []).filter(a => a.id !== id)
-            }))
-          } as Journey;
-          updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-          setSelectedJourney(updated);
-          return updated;
-        })() : null);
-      }
-    });
-    
-    // Listen for transport events
-    socketService.on('transport:created', async (transport: any) => {
-      console.log('Real-time: Transport created', transport);
-      const refreshed = await refreshJourneyFromServer(transport.journeyId);
-      if (refreshed) return;
-
-      setJourneys(prev => prev.map(j => {
-          if (j.id === transport.journeyId) {
-            const updated = { ...j, transports: [...(j.transports || []), transport] } as Journey;
-            updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-          return updated;
-        }
-        return j;
-      }));
-      if (selectedJourney?.id === transport.journeyId) {
-        setSelectedJourney(prev => {
-          if (!prev) return null;
-          const updated = { ...prev, transports: [...(prev.transports || []), transport] } as Journey;
-          updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-          return updated;
-        });
-      }
-      // Notification only for real-time updates from other users
-    });
-    
-    socketService.on('transport:updated', async (transport: any) => {
-      console.log('Real-time: Transport updated', transport);
-      const refreshed = await refreshJourneyFromServer(transport.journeyId);
-      if (refreshed) return;
-
-      setJourneys(prev => prev.map(j => {
-          if (j.id === transport.journeyId) {
-          const updated = { 
-            ...j, 
-            transports: (j.transports || []).map(t => t.id === transport.id ? transport : t)
-          } as Journey;
-          updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-          return updated;
-        }
-        return j;
-      }));
-  if (selectedJourney?.id === transport.journeyId) {
-        setSelectedJourney(prev => {
-          if (!prev) return null;
-          const updated = { ...prev, transports: (prev.transports || []).map(t => t.id === transport.id ? transport : t) } as Journey;
-          updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-          return updated;
-        });
-      }
-      // Removed duplicate notification - handled by manual actions
-    });
-    
-    socketService.on('transport:deleted', async ({ id, journeyId }: { id: number; journeyId: number }) => {
-      console.log('Real-time: Transport deleted', id);
-      const refreshed = await refreshJourneyFromServer(journeyId);
-      if (refreshed) return;
-
-      setJourneys(prev => prev.map(j => {
-          if (j.id === journeyId) {
-          const updated = {
-            ...j,
-            transports: (j.transports || []).filter(t => t.id !== id)
-          } as Journey;
-          updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-          return updated;
-        }
-        return j;
-      }));
-      if (selectedJourney?.id === journeyId) {
-        setSelectedJourney(prev => prev ? (() => {
-          const updated = { ...prev, transports: (prev.transports || []).filter(t => t.id !== id) } as Journey;
-          updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
-          return updated;
-        })() : null);
-      }
-      warning('Transport deleted');
-    });
-    
-    // Cleanup on unmount
-    return () => {
-      socketService.disconnect();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  
 
   // Load per-journey UI state (collapses) when selected journey changes
   useEffect(() => {
@@ -1302,17 +776,7 @@ function App() {
       setSelectedJourney(updatedJourney);
       setJourneys(journeys.map(j => j.id === updatedJourney.id ? updatedJourney : j));
 
-      // If there was a recently uploaded attachment, associate it with the newly created stop (if any)
-      if (uploadingAttachment && uploadingAttachment.id) {
-        try {
-          const applied = await attachmentService.applyAttachmentToTarget(uploadingAttachment.id, 'stop', createdStop.id);
-          setAttachments(prev => [applied, ...(prev || [])]);
-          setUploadingAttachment(null);
-          setPendingFile(null);
-        } catch (e) {
-          console.warn('Failed to associate uploaded attachment with stop', e);
-        }
-      }
+      // Attachments removed in MVP
       
       setNewStop({
         city: '',
@@ -1731,17 +1195,7 @@ function App() {
         trainNumber: '',
       });
       setShowTransportForm(false);
-      // If an attachment was uploaded before creating transport, associate it now
-      if (uploadingAttachment && uploadingAttachment.id) {
-        try {
-          const applied = await attachmentService.applyAttachmentToTarget(uploadingAttachment.id, 'transport', createdTransport.id);
-          setAttachments(prev => [applied, ...(prev || [])]);
-          setUploadingAttachment(null);
-          setPendingFile(null);
-        } catch (e) {
-          console.warn('Failed to associate uploaded attachment with transport', e);
-        }
-      }
+      // Attachments removed in MVP
       success('Transport added successfully!');
     } catch (err) {
       console.error('Failed to add transport:', err);
@@ -2273,15 +1727,6 @@ function App() {
         </div>
       )}
 
-      {/* Import map modal (placed here so it sits alongside other modals) */}
-      <ImportMapModal
-        isOpen={importModalOpen}
-        onClose={() => setImportModalOpen(false)}
-        onImportComplete={handleImportComplete}
-        selectedJourneyId={selectedJourney?.id ?? null}
-        existingStops={selectedJourney?.stops || []}
-      />
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -2441,29 +1886,7 @@ function App() {
 
                       {selectedJourney?.id === journey.id && (
                         <div className="space-y-2 mt-3 pt-3 border-t border-gray-200 dark:border-[#38383a]">
-                          {/* Share Journey Button - Only for journey owner */}
-                          <div className="flex gap-2">
-                            {!journey.isShared && (
-                              <button
-                                onClick={() => setShowShareModal(true)}
-                                className="flex-1 px-3 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
-                                disabled={loading}
-                              >
-                                <Share2 className="w-4 h-4" />
-                                Share Journey
-                              </button>
-                            )}
-
-                            {selectedJourney?.createdBy === user?.id && (
-                              <button
-                                onClick={() => setShowManageSharesModal(true)}
-                                className="flex-1 px-3 py-1.5 text-sm bg-violet-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500"
-                              >
-                                <Users className="w-4 h-4" />
-                                Manage Shares
-                              </button>
-                            )}
-                          </div>
+                          {/* Sharing not available in MVP */}
 
                           <div className="flex gap-2 mt-2">
                             <button
@@ -2649,11 +2072,6 @@ function App() {
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-[#ffffff]">Stops</h3>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => setImportModalOpen(true)} className="gh-btn-secondary text-sm" disabled={!selectedJourney || loading} title="Import stops from map">
-                        <DownloadCloud className="w-4 h-4" />
-                        Import
-                      </button>
-
                       <button
                         onClick={() => setShowStopForm(true)}
                         className="gh-btn-secondary text-sm"
@@ -2687,9 +2105,7 @@ function App() {
                                           console.log('📅 Fresh dates - Arrival:', freshStop.arrivalDate, 'Departure:', freshStop.departureDate);
                                           setEditingStop(freshStop);
                                           setShowEditStopForm(true);
-                                          setPendingFile(null);
-                                          setUploadingAttachment(null);
-                                          if (stopFileRef.current) stopFileRef.current.value = '';
+                                          // Attachments removed in MVP
                                         } catch (error) {
                                           console.error('Failed to fetch stop:', error);
                                           error('Failed to load stop data');
@@ -2885,9 +2301,7 @@ function App() {
                                     onClick={() => {
                                       setEditingTransport(transport);
                                       setShowEditTransportForm(true);
-                                      setPendingFile(null);
-                                      setUploadingAttachment(null);
-                                      if (transportFileRef.current) transportFileRef.current.value = '';
+                                      // Attachments removed in MVP
                                     }}
                                     className="group text-blue-600 dark:text-[#0a84ff] hover:bg-blue-600 dark:hover:bg-[#0a84ff] rounded p-1 cursor-pointer transition-all duration-300 ease-in-out"
                                     disabled={loading}
@@ -3272,80 +2686,7 @@ function App() {
         </div>
       )}
 
-      {/* Share Journey Modal */}
-      {showShareModal && selectedJourney && (
-        <div className="gh-modal-overlay" onClick={() => setShowShareModal(false)}>
-          <div className="gh-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-[#ffffff] mb-4">
-                Share Journey
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-[#98989d] mb-6">
-                Share "{selectedJourney.title}" with another user. They will receive an email invitation.
-              </p>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
-                    Email or Username *
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Enter email or username"
-                    value={shareEmailOrUsername}
-                    onChange={(e) => setShareEmailOrUsername(e.target.value)}
-                    className="gh-input"
-                    autoFocus
-                  />
-                  <p className="text-xs text-gray-500 dark:text-[#98989d] mt-2">
-                    Enter the email address or username of the person you want to share with.
-                  </p>
-                </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">Role</label>
-                    <select value={shareRole} onChange={(e) => setShareRole(e.target.value as any)} className="gh-input w-full">
-                      <option value="view">View</option>
-                      <option value="edit">Edit</option>
-                      <option value="manage">Manage</option>
-                    </select>
-                    <p className="text-xs text-gray-500 dark:text-[#98989d] mt-2">Choose the permission level for the invited user.</p>
-                  </div>
-              </div>
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={() => {
-                    setShowShareModal(false);
-                    setShareEmailOrUsername('');
-                  }}
-                  className="gh-btn-danger flex-1"
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleShareJourney}
-                  className="gh-btn-primary flex-1"
-                  disabled={loading || !shareEmailOrUsername.trim()}
-                >
-                  {loading ? 'Sharing...' : 'Share Journey'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Manage Shares Modal */}
-      {showManageSharesModal && selectedJourney && (
-        <ManageSharesModal
-          journeyId={selectedJourney.id!}
-          isOpen={showManageSharesModal}
-          onClose={() => setShowManageSharesModal(false)}
-            onUpdated={() => {
-            void loadJourneys(journeyPage, journeySearch);
-          }}
-        />
-      )}
-
+      {/* Sharing not available in MVP */}
       {/* Add Stop Modal */}
       {showStopForm && (
         <div className="gh-modal-overlay" onClick={() => setShowStopForm(false)}>
@@ -3528,63 +2869,7 @@ function App() {
                     </select>
                   </div>
                 </div>
-                {/* Attachments for new stop (moved below price, above coordinates) */}
-                <div className="mt-3">
-                  <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">Ticket / Attachment</label>
-                  <div className="flex gap-4 items-center">
-                    <input
-                      type="file"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        setPendingFile(file);
-                        setUploadingAttachment(null);
-                      }}
-                      ref={stopFileRef}
-                      className="hidden"
-                      accept={allowedFileTypes}
-                    />
-
-                    <div onClick={() => stopFileRef.current?.click()} className="w-3/4 cursor-pointer bg-gray-50 dark:bg-[#1c1c1e] px-4 h-12 rounded-md border border-gray-200 dark:border-[#38383a] flex items-center justify-between">
-                      <span className={pendingFile ? 'text-sm text-white' : 'text-sm text-gray-500'}>{pendingFile ? `${pendingFile.name} • ${Math.round(pendingFile.size / 1024)} KB` : 'Choose file...'}</span>
-                      <span className="text-sm text-gray-400">📎</span>
-                    </div>
-
-                    <button
-                      onClick={async () => {
-                        if (!pendingFile) { error('No file selected'); return; }
-                        try {
-                          setLoading(true);
-                          const fd = new FormData();
-                          fd.append('file', pendingFile);
-                          fd.append('journeyId', String(selectedJourney?.id));
-                          if (newStop?.id) fd.append('stopId', String(newStop.id));
-                          const resp = await attachmentService.uploadAttachment(fd);
-                          success('Attachment uploaded');
-                          if (resp?.attachment) setAttachments(prev => [resp.attachment, ...(prev || [])]);
-                          setUploadingAttachment(resp?.attachment ?? null);
-                          setPendingFile(null);
-                        } catch (err) {
-                          error('Upload failed');
-                        } finally { setLoading(false); }
-                      }}
-                      className="w-1/4 h-12 gh-btn-primary bg-green-500 hover:bg-green-600 flex items-center justify-center"
-                    ><Plus className="w-4 h-4 mr-2" />Add</button>
-                  </div>
-                  {/* Removed temporary upload-preview row: keep only the static chooser and existing attachments */}
-                  {/* Existing attachments for the new stop (if any) */}
-                  {(newStop && attachments && attachments.length > 0) && (() => {
-                    const attForNewStop = attachments.filter(a => Number(a.stopId ?? a.stop_id ?? a.stop) === (newStop.id ?? null));
-                    if (!attForNewStop || attForNewStop.length === 0) return null;
-                    return (
-                      <div className="mt-3">
-                        <div className="text-sm text-gray-600 dark:text-[#98989d] mb-2">Existing attachments</div>
-                        <div className="space-y-2">
-                          {attForNewStop.map((att: any) => renderAttachmentRow(att))}
-                        </div>
-                      </div>
-                    );
-                  })()}
+                {/* Attachments removed in MVP */}
                 <div className="bg-gray-50 dark:bg-[#1c1c1e] p-3 rounded-lg border border-gray-200 dark:border-[#38383a]">
                   <p className="text-sm text-gray-600 dark:text-[#98989d]">
                     📍 Coordinates: {newStop.latitude?.toFixed(4)}, {newStop.longitude?.toFixed(4)}
@@ -4346,60 +3631,7 @@ function App() {
                     onChange={(e) => setEditingTransport({ ...editingTransport, bookingUrl: e.target.value })}
                     className="gh-input h-12"
                   />
-                  <div className="flex gap-4 items-center mt-4">
-                    <input
-                      type="file"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        setPendingFile(file);
-                        setUploadingAttachment(null);
-                      }}
-                      ref={transportFileRef}
-                      className="hidden"
-                      accept={allowedFileTypes}
-                    />
-
-                    <div onClick={() => transportFileRef.current?.click()} className="w-3/4 cursor-pointer bg-gray-50 dark:bg-[#1c1c1e] px-4 h-12 rounded-md border border-gray-200 dark:border-[#38383a] flex items-center justify-between">
-                      <span className={pendingFile ? 'text-sm text-white' : 'text-sm text-gray-500'}>{pendingFile ? `${pendingFile.name} • ${Math.round(pendingFile.size / 1024)} KB` : 'Choose file...'}</span>
-                      <span className="text-sm text-gray-400">📎</span>
-                    </div>
-
-                    <button
-                      onClick={async () => {
-                        if (!pendingFile) { error('No file selected'); return; }
-                        try {
-                          setLoading(true);
-                          const fd = new FormData();
-                          fd.append('file', pendingFile);
-                          fd.append('journeyId', String(selectedJourney?.id));
-                          if (editingTransport?.id) fd.append('transportId', String(editingTransport.id));
-                          const resp = await attachmentService.uploadAttachment(fd);
-                          success('Attachment uploaded');
-                          if (resp?.attachment) setAttachments(prev => [resp.attachment, ...(prev || [])]);
-                          setUploadingAttachment(resp?.attachment ?? null);
-                          setPendingFile(null);
-                        } catch (err) {
-                          error('Upload failed');
-                        } finally { setLoading(false); }
-                      }}
-                      className="w-1/4 h-12 gh-btn-primary bg-green-500 hover:bg-green-600"
-                    ><Plus className="w-4 h-4 mr-2" />Add</button>
-                  </div>
-                    {/* Removed temporary upload-preview and pending-file preview: only the chooser and Existing attachments are shown as requested */}
-                    {/* Existing attachments for the transport being edited */}
-                    {(editingTransport && attachments && attachments.length > 0) && (() => {
-                      const attForEditingTransport = attachments.filter(a => Number(a.transportId ?? a.transport_id ?? a.transport) === (editingTransport.id ?? null));
-                      if (!attForEditingTransport || attForEditingTransport.length === 0) return null;
-                      return (
-                        <div className="mt-3">
-                          <div className="text-sm text-gray-600 dark:text-[#98989d] mb-2">Existing attachments</div>
-                          <div className="space-y-2">
-                            {attForEditingTransport.map((att: any) => renderAttachmentRow(att))}
-                          </div>
-                        </div>
-                      );
-                    })()}
+                  {/* Attachments removed in MVP */}
                 </div>
               </div>
               <div className="flex gap-3 mt-6">

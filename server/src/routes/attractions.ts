@@ -9,7 +9,6 @@ import {
   updateAttractionPriority,
   bulkUpdateAttractions,
 } from '../controllers/attractionController';
-import { authenticateToken } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import {
   createAttractionSchema,
@@ -21,27 +20,27 @@ import {
 const router = express.Router();
 
 // Get all attractions for a stop
-router.get('/stop/:stopId', authenticateToken, validate(getAttractionsByStopIdSchema), getAttractionsByStopId);
+router.get('/stop/:stopId', validate(getAttractionsByStopIdSchema), getAttractionsByStopId);
 
 // Create attraction for a stop
-router.post('/stop/:stopId', authenticateToken, validate(createAttractionSchema), createAttraction);
+router.post('/stop/:stopId', validate(createAttractionSchema), createAttraction);
 
 // Update attraction
-router.put('/:id', authenticateToken, validate(updateAttractionSchema), updateAttraction);
+router.put('/:id', validate(updateAttractionSchema), updateAttraction);
 
 // Reorder attractions within a stop
-router.patch('/stop/:stopId/reorder', authenticateToken, reorderAttractions);
+router.patch('/stop/:stopId/reorder', reorderAttractions);
 
 // Bulk update attractions (order, priority, dates, move between stops)
-router.patch('/bulk', authenticateToken, bulkUpdateAttractions);
+router.patch('/bulk', bulkUpdateAttractions);
 
 // Move attraction to another stop
-router.patch('/:id/move', authenticateToken, moveAttraction);
+router.patch('/:id/move', moveAttraction);
 
 // Update attraction priority
-router.patch('/:id/priority', authenticateToken, updateAttractionPriority);
+router.patch('/:id/priority', updateAttractionPriority);
 
 // Delete attraction
-router.delete('/:id', authenticateToken, validate(deleteAttractionSchema), deleteAttraction);
+router.delete('/:id', validate(deleteAttractionSchema), deleteAttraction);
 
 export default router;

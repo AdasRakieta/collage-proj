@@ -13,7 +13,6 @@ export default defineConfig({
       }
     }
   },
-  // Base path for subpath deployment under /journey/
-  // This ensures all assets are loaded from /journey/assets/ and React Router works correctly
-  base: '/journey/',
+  // Base path for root deployment
+  base: '/',
 })

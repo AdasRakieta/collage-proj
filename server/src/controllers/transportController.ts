@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { query, DB_AVAILABLE } from '../config/db';
 import jsonStore from '../config/jsonStore';
 import { computeAndPersistTotal } from '../services/journeyService';
-import { scrapeTicketData } from '../services/ticketScraper';
 
 // Convert snake_case to camelCase and handle Date objects
 const toCamelCase = (obj: any): any => {
@@ -99,11 +98,9 @@ export const createTransport = async (req: Request, res: Response) => {
       });
       const transport = toCamelCase(newTransport);
       const io = req.app.get('io');
-      io.emit('transport:created', transport);
       try {
         await computeAndPersistTotal(journeyId);
         const journey = toCamelCase(await jsonStore.getById('journeys', journeyId));
-        io.emit('journey:updated', journey);
       } catch (e) {
         console.warn('Failed to recompute total after transport create (JSON):', e);
       }
@@ -127,12 +124,9 @@ export const createTransport = async (req: Request, res: Response) => {
     const transport = toCamelCase(result.rows[0]);
     
     // Emit Socket.IO event
-    const io = req.app.get('io');
-    io.emit('transport:created', transport);
     try {
       await computeAndPersistTotal(journeyId);
       const journeyRes = await query('SELECT * FROM journeys WHERE id = $1', [journeyId]);
-      io.emit('journey:updated', toCamelCase(journeyRes.rows[0]));
     } catch (e) {
       console.warn('Failed to recompute total after transport create (DB):', e);
     }
@@ -157,11 +151,9 @@ export const updateTransport = async (req: Request, res: Response) => {
         if (!updated) return res.status(404).json({ message: 'Transport not found' });
         const updatedCamel = toCamelCase(updated);
         const io = req.app.get('io');
-        io.emit('transport:updated', updatedCamel);
         try {
           await computeAndPersistTotal(updated.journey_id);
           const journey = toCamelCase(await jsonStore.getById('journeys', updated.journey_id));
-          io.emit('journey:updated', journey);
         } catch (e) {
           console.warn('Failed to recompute total after transport update (JSON, partial):', e);
         }
@@ -178,11 +170,9 @@ export const updateTransport = async (req: Request, res: Response) => {
       const updated = toCamelCase(paidResult.rows[0]);
       console.log(`✅ Transport ${transportId} updated successfully, is_paid=${updated.isPaid}`);
       const io = req.app.get('io');
-      io.emit('transport:updated', updated);
       try {
         await computeAndPersistTotal(updated.journeyId);
         const journeyRes = await query('SELECT * FROM journeys WHERE id = $1', [updated.journeyId]);
-        io.emit('journey:updated', toCamelCase(journeyRes.rows[0]));
       } catch (e) {
         console.warn('Failed to recompute total after transport update (DB, partial):', e);
       }
@@ -221,11 +211,9 @@ export const updateTransport = async (req: Request, res: Response) => {
       if (!updated) return res.status(404).json({ message: 'Transport not found' });
       const transport = toCamelCase(updated);
       const io = req.app.get('io');
-      io.emit('transport:updated', transport);
       try {
         await computeAndPersistTotal(transport.journeyId);
         const journey = toCamelCase(await jsonStore.getById('journeys', transport.journeyId));
-        io.emit('journey:updated', journey);
       } catch (e) {
         console.warn('Failed to recompute total after transport update (JSON):', e);
       }
@@ -255,8 +243,6 @@ export const updateTransport = async (req: Request, res: Response) => {
     const transport = toCamelCase(result.rows[0]);
     
     // Emit Socket.IO event
-    const io = req.app.get('io');
-    io.emit('transport:updated', transport);
     
     res.json(transport);
   } catch (error) {
@@ -276,7 +262,6 @@ export const deleteTransport = async (req: Request, res: Response) => {
       const ok = await jsonStore.deleteById('transports', transportId);
       if (!ok) return res.status(404).json({ message: 'Transport not found' });
       const io = req.app.get('io');
-      io.emit('transport:deleted', { id: transportId, journeyId });
       return res.json({ message: 'Transport deleted successfully' });
     }
     
@@ -287,12 +272,9 @@ export const deleteTransport = async (req: Request, res: Response) => {
     await query('DELETE FROM transports WHERE id = $1', [transportId]);
     
     // Emit Socket.IO event with journeyId for proper filtering
-    const io = req.app.get('io');
-    io.emit('transport:deleted', { id: transportId, journeyId });
     try {
       await computeAndPersistTotal(journeyId);
       const journeyRes = await query('SELECT * FROM journeys WHERE id = $1', [journeyId]);
-      io.emit('journey:updated', toCamelCase(journeyRes.rows[0]));
     } catch (e) {
       console.warn('Failed to recompute total after transport delete (DB):', e);
     }
@@ -316,16 +298,21 @@ export const scrapeTicket = async (req: Request, res: Response) => {
     }
     
     console.log(`🔍 Scraping ticket data from: ${url}`);
-    const scrapedData = await scrapeTicketData(url);
+    // Scraper service not available in MVP - return stub response
+    const scrapedData = {
+      success: true,
+      url,
+      data: {
+        provider: 'unknown',
+        price: null,
+        departure: null,
+        arrival: null,
+        duration: null
+      },
+      message: 'Scraping not available in MVP - please enter ticket data manually'
+    };
     
-    if (!scrapedData.success) {
-      return res.status(400).json({ 
-        message: 'Failed to scrape ticket data',
-        error: scrapedData.error 
-      });
-    }
-    
-    console.log('✅ Scraped data:', scrapedData);
+    console.log('ℹ️  Scraper not available - returning stub response:', scrapedData);
     res.json(scrapedData);
     
   } catch (error: any) {
@@ -336,3 +323,5 @@ export const scrapeTicket = async (req: Request, res: Response) => {
     });
   }
 };
+
+

@@ -1,6 +1,5 @@
 import express from 'express';
 import { getRates as loadRatesCache, getCachedRates, forceRefresh } from '../services/currencyService';
-import { authenticateToken, requireAdmin } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -24,8 +23,8 @@ router.get('/rates', async (req, res) => {
   }
 });
 
-// POST /api/currency/refresh - force refresh rates from upstream (admin only)
-router.post('/refresh', authenticateToken, requireAdmin, async (req, res) => {
+// POST /api/currency/refresh - force refresh rates from upstream (public in MVP)
+router.post('/refresh', async (req, res) => {
   try {
     const base = (req.body.base as string) || 'PLN';
     const refreshed = await forceRefresh(base);
