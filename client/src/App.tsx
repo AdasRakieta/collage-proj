@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, MapPin, Calendar, DollarSign, Plane, Train, Bus, Car, Menu, X, Trash2, Edit2, CheckCircle2, XCircle, Settings, LogOut, User, Users, ChevronDown, ChevronRight, Eye, DownloadCloud, FileText, ListOrdered } from 'lucide-react';
+import { Plus, MapPin, Calendar, DollarSign, Plane, Train, Bus, Car, Menu, X, Trash2, Edit2, CheckCircle2, XCircle, Settings, LogOut, User, Users, ChevronDown, ChevronRight, Eye, DownloadCloud, FileText, ListOrdered, Moon, Sun } from 'lucide-react';
+import { useTheme } from './contexts/ThemeContext';
 import JourneyMapWrapper from './components/JourneyMapWrapper';
 import { PaymentCheckbox } from './components/PaymentCheckbox';
 import { ToastContainer, useToast } from './components/Toast';
@@ -63,6 +64,7 @@ function App() {
   // MVP - no authentication, use dummy user
   const user = { id: 1, username: 'guest', email: 'guest@example.com' };
   const logout = () => { };
+  const { theme, toggleTheme } = useTheme();
   const { toasts, closeToast, success, error, warning, info } = useToast();
   const confirmHook = useConfirm();
   const [journeys, setJourneys] = useState<Journey[]>([]);
@@ -963,11 +965,9 @@ function App() {
       setLoading(true);
       await stopService.deleteStop(stopId);
       
-      const updatedStops = selectedJourney.stops?.filter(s => s.id !== stopId);
-      const updatedJourney = { ...selectedJourney, stops: updatedStops };
+      // Refresh journey from server to get updated totals
+      await refreshJourneyFromServer(selectedJourney.id!, true);
       
-      setSelectedJourney(updatedJourney);
-      setJourneys(journeys.map(j => j.id === updatedJourney.id ? updatedJourney : j));
       success('Stop deleted successfully!');
     } catch (err) {
       console.error('Failed to delete stop:', err);
@@ -994,19 +994,9 @@ function App() {
       setLoading(true);
       await attractionService.deleteAttraction(attractionId);
       
-      const updatedStops = selectedJourney.stops?.map(stop => {
-        if (stop.id === stopId) {
-          return {
-            ...stop,
-            attractions: stop.attractions?.filter(a => a.id !== attractionId),
-          };
-        }
-        return stop;
-      });
+      // Refresh journey from server to get updated totals
+      await refreshJourneyFromServer(selectedJourney.id!, true);
       
-      const updatedJourney = { ...selectedJourney, stops: updatedStops };
-      setSelectedJourney(updatedJourney);
-      setJourneys(journeys.map(j => j.id === updatedJourney.id ? updatedJourney : j));
       success('Attraction deleted successfully!');
     } catch (err) {
       console.error('Failed to delete attraction:', err);
@@ -1033,11 +1023,9 @@ function App() {
       setLoading(true);
       await transportService.deleteTransport(transportId);
       
-      const updatedTransports = selectedJourney.transports?.filter(t => t.id !== transportId);
-      const updatedJourney = { ...selectedJourney, transports: updatedTransports };
+      // Refresh journey from server to get updated totals
+      await refreshJourneyFromServer(selectedJourney.id!, true);
       
-      setSelectedJourney(updatedJourney);
-      setJourneys(journeys.map(j => j.id === updatedJourney.id ? updatedJourney : j));
       success('Transport deleted successfully!');
     } catch (err) {
       console.error('Failed to delete transport:', err);
@@ -1054,19 +1042,12 @@ function App() {
       setLoading(true);
       const updated = await stopService.updateStop(editingStop.id, editingStop);
       
-      const updatedStops = selectedJourney.stops?.map(s => s.id === updated.id ? updated : s);
-      const updatedJourney = { ...selectedJourney, stops: updatedStops };
+      // Refresh journey from server to get updated totals
+      await refreshJourneyFromServer(selectedJourney.id!, true);
       
-      setSelectedJourney(updatedJourney);
-      setJourneys(journeys.map(j => j.id === updatedJourney.id ? updatedJourney : j));
-      
+      setShowEditStopForm(false);
+      setEditingStop(null);
       success('Stop updated successfully!');
-      
-      // Wait 1 second for socket event to update the form, then close
-      setTimeout(() => {
-        setShowEditStopForm(false);
-        setEditingStop(null);
-      }, 1000);
     } catch (err) {
       console.error('Failed to update stop:', err);
       error('Failed to update stop');
@@ -1151,10 +1132,8 @@ function App() {
       
       const updated = await attractionService.updateAttraction(attractionData.id!, attractionData);
       
-      // Reload journey data from server to ensure all fields are up-to-date
-      const refreshedJourney = await journeyService.getJourneyById(selectedJourney.id!);
-      setSelectedJourney(refreshedJourney);
-      setJourneys(journeys.map(j => j.id === refreshedJourney.id ? refreshedJourney : j));
+      // Refresh journey from server to get updated totals
+      await refreshJourneyFromServer(selectedJourney.id!, true);
       
       setShowEditAttractionForm(false);
       setEditingAttraction(null);
@@ -1175,11 +1154,9 @@ function App() {
       setLoading(true);
       const updated = await transportService.updateTransport(editingTransport.id, editingTransport);
       
-      const updatedTransports = selectedJourney.transports?.map(t => t.id === updated.id ? updated : t);
-      const updatedJourney = { ...selectedJourney, transports: updatedTransports };
+      // Refresh journey from server to get updated totals
+      await refreshJourneyFromServer(selectedJourney.id!, true);
       
-      setSelectedJourney(updatedJourney);
-      setJourneys(journeys.map(j => j.id === updatedJourney.id ? updatedJourney : j));
       setShowEditTransportForm(false);
       setEditingTransport(null);
       success('Transport updated successfully!');
@@ -1487,6 +1464,20 @@ function App() {
 
             {/* Desktop Actions */}
             <div className="hidden lg:flex items-center gap-3">
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-[#38383a] rounded-lg transition-colors"
+                aria-label="Toggle theme"
+                title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              >
+                {theme === 'light' ? (
+                  <Moon className="w-5 h-5 text-gray-600" />
+                ) : (
+                  <Sun className="w-5 h-5 text-yellow-400" />
+                )}
+              </button>
+              
               {/* User Info */}
               {user && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-[#38383a] rounded-lg border border-gray-200 dark:border-[#38383a]">
@@ -1568,6 +1559,24 @@ function App() {
                   )}
                 </div>
               )}
+              
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="w-full gh-btn-secondary justify-center"
+              >
+                {theme === 'light' ? (
+                  <>
+                    <Moon className="w-5 h-5" />
+                    Dark Mode
+                  </>
+                ) : (
+                  <>
+                    <Sun className="w-5 h-5" />
+                    Light Mode
+                  </>
+                )}
+              </button>
               
               {/* Settings Link */}
               <Link
@@ -2769,6 +2778,30 @@ function App() {
                       type="date"
                       value={newStop.departureDate as string}
                       onChange={(e) => setNewStop({ ...newStop, departureDate: e.target.value })}
+                      className="gh-input"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
+                      Check-in Time
+                    </label>
+                    <input
+                      type="time"
+                      value={newStop.checkInTime ?? ''}
+                      onChange={(e) => setNewStop({ ...newStop, checkInTime: e.target.value })}
+                      className="gh-input"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
+                      Check-out Time
+                    </label>
+                    <input
+                      type="time"
+                      value={newStop.checkOutTime ?? ''}
+                      onChange={(e) => setNewStop({ ...newStop, checkOutTime: e.target.value })}
                       className="gh-input"
                     />
                   </div>

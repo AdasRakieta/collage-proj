@@ -44,6 +44,9 @@ export const createJourneySchema = z.object({
       .default('PLN'),
   }).passthrough().refine(
     (data) => {
+      // Skip validation if either date is undefined/empty
+      if (!data.startDate || !data.endDate) return true;
+      
       const start = new Date(data.startDate);
       const end = new Date(data.endDate);
       return end >= start;
