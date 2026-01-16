@@ -1,0 +1,45 @@
+{
+  "name": "journey-planner",
+  "version": "1.0.0",
+  "description": "Journey Planner Application - Web app for planning trips with map integration",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "cd server && npm run dev",
+    "server:build": "cd server && npm run build",
+    "server:start": "cd server && npm start",
+    "client:dev": "cd client && npm run dev",
+    "client:build": "cd client && npm run build",
+    "client:preview": "cd client && npm run preview",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "build:all": "npm run server:build && npm run client:build"
+  },
+  "keywords": [
+    "journey",
+    "planner",
+    "travel",
+    "map",
+    "postgres"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "mammoth": "^1.11.0",
+    "pg": "^8.16.3",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/node": "^24.10.0",
+    "@types/pg": "^8.15.6",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

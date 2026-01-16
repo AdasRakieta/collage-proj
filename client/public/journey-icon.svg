@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Tło mapy w kolorze turkusowym -->
+  <rect x="0" y="0" width="512" height="512" fill="#50C9B8" rx="64"/>
+  
+  <!-- Drogi/ścieżki w kolorze żółtym -->
+  <path d="M 100 150 L 250 100 L 400 200" fill="none" stroke="#FFD166" stroke-width="40" stroke-linecap="round"/>
+  <path d="M 150 300 L 350 350 L 450 400" fill="none" stroke="#FFD166" stroke-width="40" stroke-linecap="round"/>
+  
+  <!-- Pin lokalizacji 1 (góra) -->
+  <g transform="translate(100, 100)">
+    <path d="M 0 0 C 0 -35 35 -70 50 -70 C 65 -70 100 -35 100 0 C 100 20 50 80 50 80 C 50 80 0 20 0 0 Z" 
+          fill="#C84B3D" stroke="#8B1E0F" stroke-width="3"/>
+    <circle cx="50" cy="-35" r="25" fill="white"/>
+  </g>
+  
+  <!-- Pin lokalizacji 2 (dół) -->
+  <g transform="translate(350, 300)">
+    <path d="M 0 0 C 0 -35 35 -70 50 -70 C 65 -70 100 -35 100 0 C 100 20 50 80 50 80 C 50 80 0 20 0 0 Z" 
+          fill="#C84B3D" stroke="#8B1E0F" stroke-width="3"/>
+    <circle cx="50" cy="-35" r="25" fill="white"/>
+  </g>
+</svg>
