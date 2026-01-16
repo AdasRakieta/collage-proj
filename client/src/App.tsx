@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, MapPin, Calendar, DollarSign, Plane, Train, Bus, Car, Menu, X, Trash2, Edit2, CheckCircle2, XCircle, Settings, LogOut, User, Users, ChevronDown, ChevronRight, Eye, DownloadCloud, FileText, ListOrdered } from 'lucide-react';
 import JourneyMapWrapper from './components/JourneyMapWrapper';
@@ -71,7 +71,6 @@ function App() {
   const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
   const [loading, setLoading] = useState(false);
   // Attachments removed in MVP
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = useState('');
@@ -114,8 +113,8 @@ function App() {
     type: 'flight',
     fromLocation: '',
     toLocation: '',
-    departureDate: '',
-    arrivalDate: '',
+    departureDate: undefined,
+    arrivalDate: undefined,
     price: 0,
     currency: 'PLN',
     isPaid: false,
@@ -140,6 +139,9 @@ function App() {
   });
 
   // Attachments removed in MVP
+  
+  // Accordion state for attractions
+  const [openAttractions, setOpenAttractions] = useState<Record<number, boolean>>({});
 
   // Initial load (MVP: no auth, no sockets)
   useEffect(() => {
@@ -213,7 +215,7 @@ function App() {
   const [showTransportForm, setShowTransportForm] = useState(false);
   const [bookingUrl, setBookingUrl] = useState('');
   const [editBookingUrl, setEditBookingUrl] = useState('');
-  const [uploadingAttachment, setUploadingAttachment] = useState<any>(null);
+  // Attachments removed in MVP
 
   const [selectedStopForAttraction, setSelectedStopForAttraction] = useState<number | null>(null);
   const [showAttractionForm, setShowAttractionForm] = useState(false);
@@ -756,6 +758,26 @@ function App() {
     }
   };
 
+  // Refresh journey from server to get updated totals and full data
+  const refreshJourneyFromServer = async (journeyId: number, updateSelected: boolean = false) => {
+    try {
+      const updated = await journeyService.getJourneyById(journeyId);
+      
+      // Update in journeys list
+      setJourneys(prev => prev.map(j => j.id === journeyId ? updated : j));
+      
+      // Update selected journey if requested
+      if (updateSelected) {
+        setSelectedJourney(updated);
+      }
+      
+      return updated;
+    } catch (err) {
+      console.error('Failed to refresh journey:', err);
+      throw err;
+    }
+  };
+
   const handleAddStop = async () => {
     if (!selectedJourney || !newStop.city || !newStop.country) {
       warning('Please fill in city and country');
@@ -768,13 +790,8 @@ function App() {
       // Use the new createStop endpoint
       const createdStop = await stopService.createStop(selectedJourney.id!, newStop);
       
-      // Update local state
-      const updatedJourney = {
-        ...selectedJourney,
-        stops: [...(selectedJourney.stops || []), createdStop],
-      };
-      setSelectedJourney(updatedJourney);
-      setJourneys(journeys.map(j => j.id === updatedJourney.id ? updatedJourney : j));
+      // Refresh journey from server to get updated totals and full stop data
+      await refreshJourneyFromServer(selectedJourney.id!, true);
 
       // Attachments removed in MVP
       
@@ -793,9 +810,20 @@ function App() {
       setShowStopForm(false);
       setBookingUrl('');
       success('Stop added successfully!');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to add stop:', err);
-      error('Failed to add stop');
+      
+      // Display specific validation errors from backend
+      if (err.response?.data?.errors && Array.isArray(err.response.data.errors)) {
+        const errorMessages = err.response.data.errors
+          .map((e: any) => e.message)
+          .join(', ');
+        error(`Validation error: ${errorMessages}`);
+      } else if (err.response?.data?.message) {
+        error(`Failed to add stop: ${err.response.data.message}`);
+      } else {
+        error('Failed to add stop');
+      }
     } finally {
       setLoading(false);
     }
@@ -1171,23 +1199,35 @@ function App() {
 
     try {
       setLoading(true);
-      // Use transportService instead of updating journey directly
-      const createdTransport = await transportService.createTransport(selectedJourney.id!, newTransport);
       
-      // Update local state
-      const updatedJourney = {
-        ...selectedJourney,
-        transports: [...(selectedJourney.transports || []), createdTransport],
+      // Prepare transport data with proper date formatting
+      const transportData = {
+        ...newTransport,
+        // If dates are provided in datetime-local format (YYYY-MM-DDTHH:MM), ensure they have seconds
+        departureDate: newTransport.departureDate && newTransport.departureDate.trim() 
+          ? (newTransport.departureDate.includes('T') && !newTransport.departureDate.match(/:\d{2}:\d{2}/) 
+              ? `${newTransport.departureDate}:00` 
+              : newTransport.departureDate)
+          : undefined,
+        arrivalDate: newTransport.arrivalDate && newTransport.arrivalDate.trim()
+          ? (newTransport.arrivalDate.includes('T') && !newTransport.arrivalDate.match(/:\d{2}:\d{2}/)
+              ? `${newTransport.arrivalDate}:00`
+              : newTransport.arrivalDate)
+          : undefined,
       };
-      setSelectedJourney(updatedJourney);
-      setJourneys(journeys.map(j => j.id === updatedJourney.id ? updatedJourney : j));
+      
+      // Use transportService instead of updating journey directly
+      const createdTransport = await transportService.createTransport(selectedJourney.id!, transportData);
+      
+      // Refresh journey from server to get updated totals
+      await refreshJourneyFromServer(selectedJourney.id!, true);
       
       setNewTransport({
         type: 'flight',
         fromLocation: '',
         toLocation: '',
-        departureDate: '',
-        arrivalDate: '',
+        departureDate: undefined,
+        arrivalDate: undefined,
         price: 0,
         currency: 'PLN',
         bookingUrl: '',
@@ -2218,28 +2258,7 @@ function App() {
                                     </button>
                                   )}
                                 </div>
-                                {/* Stop attachments toggle and list */}
-                                {attachments && (
-                                  (() => {
-                                    const attForStop = attachments.filter(a => Number(a.stopId ?? a.stop_id ?? a.stop) === (stop.id ?? null));
-                                    if (!attForStop || attForStop.length === 0) return null;
-                                    return (
-                                      <div className="mt-3">
-                                        <button onClick={() => toggleStopAttachments(stop.id!)} className="group p-1 rounded flex items-center gap-2 text-sm text-gray-600 dark:text-[#98989d]" aria-expanded={!!openStopAttachments[stop.id!]}>
-                                          <span className="text-xs">
-                                            {openStopAttachments[stop.id!] ? <ChevronDown className="w-4 h-4 text-black dark:text-white transition-transform duration-200 transform group-hover:-rotate-90 group-hover:scale-110" /> : <ChevronRight className="w-4 h-4 text-black dark:text-white transition-transform duration-200 transform group-hover:rotate-90 group-hover:scale-110" />}
-                                          </span>
-                                          <span>{attForStop.length} Attachment{attForStop.length !== 1 ? 's' : ''}</span>
-                                        </button>
-                                        <div className={`mt-2 transition-collapse overflow-hidden ${openStopAttachments[stop.id!] ? 'collapse-visible' : 'collapse-hidden'}`} aria-hidden={!openStopAttachments[stop.id!]}>
-                                          <div className="space-y-2">
-                                            {attForStop.map((att: any) => renderAttachmentRow(att))}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    );
-                                  })()
-                                )}
+                                {/* Attachments removed in MVP */}
                                 {/* Add Attraction button moved inside collapsible */}
                               </div>
                             </div>
@@ -2350,28 +2369,7 @@ function App() {
                                   </a>
                                 )}
 
-                                {/* Transport attachments toggle and list */}
-                                {attachments && (
-                                  (() => {
-                                    const attForTransport = attachments.filter(a => Number(a.transportId ?? a.transport_id ?? a.transport) === (transport.id ?? null));
-                                    if (!attForTransport || attForTransport.length === 0) return null;
-                                    return (
-                                      <div className="mt-3">
-                                        <button onClick={() => toggleTransportAttachments(transport.id!)} className="group p-1 rounded flex items-center gap-2 text-sm text-gray-600 dark:text-[#98989d]" aria-expanded={!!openTransportAttachments[transport.id!]}>
-                                          <span className="text-xs">
-                                            {openTransportAttachments[transport.id!] ? <ChevronDown className="w-4 h-4 text-black dark:text-white transition-transform duration-200 transform group-hover:-rotate-90 group-hover:scale-110" /> : <ChevronRight className="w-4 h-4 text-black dark:text-white transition-transform duration-200 transform group-hover:rotate-90 group-hover:scale-110" />}
-                                          </span>
-                                          <span>{attForTransport.length} Attachment{attForTransport.length !== 1 ? 's' : ''}</span>
-                                        </button>
-                                        <div className={`mt-2 transition-collapse overflow-hidden ${openTransportAttachments[transport.id!] ? 'collapse-visible' : 'collapse-hidden'}`} aria-hidden={!openTransportAttachments[transport.id!]}>
-                                          <div className="space-y-2">
-                                            {attForTransport.map((att: any) => renderAttachmentRow(att))}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    );
-                                  })()
-                                )}
+                                {/* Attachments removed in MVP */}
                             </div>
                           </div>
                         </div>
@@ -2896,7 +2894,6 @@ function App() {
                 </button>
               </div>
             </div>
-            </div>
           </div>
         </div>
       )}
@@ -3117,68 +3114,7 @@ function App() {
                     </select>
                   </div>
                 </div>
-                {/* Attachment chooser and existing attachments for Edit Stop (mirror Edit Transport) */}
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
-                    Attachment
-                  </label>
-                  <div className="flex gap-4 items-center mt-2">
-                    <input
-                      type="file"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        setPendingFile(file);
-                        setUploadingAttachment(null);
-                      }}
-                      ref={stopFileRef}
-                      className="hidden"
-                      accept={allowedFileTypes}
-                    />
-
-                    <div onClick={() => stopFileRef.current?.click()} className="w-3/4 cursor-pointer bg-gray-50 dark:bg-[#1c1c1e] px-4 h-12 rounded-md border border-gray-200 dark:border-[#38383a] flex items-center justify-between">
-                      <span className={pendingFile ? 'text-sm text-white' : 'text-sm text-gray-500'}>{pendingFile ? `${pendingFile.name} • ${Math.round(pendingFile.size / 1024)} KB` : 'Choose file...'}</span>
-                      <span className="text-sm text-gray-400">📎</span>
-                    </div>
-
-                    <button
-                      onClick={async () => {
-                        if (!pendingFile) { error('No file selected'); return; }
-                        try {
-                          setLoading(true);
-                          const fd = new FormData();
-                          fd.append('file', pendingFile);
-                          fd.append('journeyId', String(selectedJourney?.id));
-                          if (editingStop?.id) fd.append('stopId', String(editingStop.id));
-                          const resp = await attachmentService.uploadAttachment(fd);
-                          success('Attachment uploaded');
-                          if (resp?.attachment) setAttachments(prev => [resp.attachment, ...(prev || [])]);
-                          setUploadingAttachment(resp?.attachment ?? null);
-                          setPendingFile(null);
-                        } catch (err) {
-                          error('Upload failed');
-                        } finally { setLoading(false); }
-                      }}
-                      className="w-1/4 h-12 gh-btn-primary bg-green-500 hover:bg-green-600"
-                    ><Plus className="w-4 h-4 mr-2" />Add</button>
-                  </div>
-
-                  {/* Removed temporary upload-preview and pending-file preview: only the chooser and Existing attachments are shown as requested */}
-
-                  {/* Existing attachments for the stop being edited */}
-                  {(editingStop && attachments && attachments.length > 0) && (() => {
-                    const attForEditingStop = attachments.filter(a => Number(a.stopId ?? a.stop_id ?? a.stop) === (editingStop.id ?? null));
-                    if (!attForEditingStop || attForEditingStop.length === 0) return null;
-                    return (
-                      <div className="mt-3">
-                        <div className="text-sm text-gray-600 dark:text-[#98989d] mb-2">Existing attachments</div>
-                        <div className="space-y-2">
-                          {attForEditingStop.map((att: any) => renderAttachmentRow(att))}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
+                {/* Attachments removed in MVP */}
               </div>
               <div className="flex gap-3 mt-6">
                 <button
@@ -3295,20 +3231,20 @@ function App() {
                     </label>
                     <input
                       type="datetime-local"
-                      value={newTransport.departureDate as string}
+                      value={(newTransport.departureDate as string) || ''}
                       onChange={e => {
                         let val = e.target.value;
                         // Allow user to type with space instead of T
                         if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
                           val = val.replace(' ', 'T');
                         }
-                        setNewTransport({ ...newTransport, departureDate: val });
+                        setNewTransport({ ...newTransport, departureDate: val || undefined });
                       }}
                       onBlur={e => {
                         let val = e.target.value;
                         if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
                           val = val.replace(' ', 'T');
-                          setNewTransport(prev => ({ ...prev, departureDate: val }));
+                          setNewTransport(prev => ({ ...prev, departureDate: val || undefined }));
                         }
                       }}
                       className="gh-input"
@@ -3321,19 +3257,19 @@ function App() {
                     </label>
                     <input
                       type="datetime-local"
-                      value={newTransport.arrivalDate as string}
+                      value={(newTransport.arrivalDate as string) || ''}
                       onChange={e => {
                         let val = e.target.value;
                         if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
                           val = val.replace(' ', 'T');
                         }
-                        setNewTransport({ ...newTransport, arrivalDate: val });
+                        setNewTransport({ ...newTransport, arrivalDate: val || undefined });
                       }}
                       onBlur={e => {
                         let val = e.target.value;
                         if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
                           val = val.replace(' ', 'T');
-                          setNewTransport(prev => ({ ...prev, arrivalDate: val }));
+                          setNewTransport(prev => ({ ...prev, arrivalDate: val || undefined }));
                         }
                       }}
                       className="gh-input"
