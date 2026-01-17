@@ -1,0 +1,344 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+/* Tailwind v4: Configure dark mode to use .dark class instead of prefers-color-scheme */
+@variant dark (.dark &);
+
+@theme {
+  --color-apple-dark-bg-primary: #1c1c1e;
+  --color-apple-dark-bg-secondary: #2c2c2e;
+  --color-apple-dark-bg-tertiary: #3a3a3c;
+  --color-apple-dark-border-default: #38383a;
+  --color-apple-dark-text-primary: #ffffff;
+  --color-apple-dark-text-secondary: #98989d;
+  --color-apple-dark-text-tertiary: #636366;
+  --color-apple-dark-accent-blue: #0a84ff;
+  --color-apple-dark-accent-green: #30d158;
+  --color-apple-dark-accent-red: #ff453a;
+  --color-apple-dark-accent-orange: #ff9f0a;
+}
+
+@layer base {
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', 'Helvetica', 'Arial', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* All buttons get cursor pointer */
+  button {
+    cursor: pointer;
+    transition: 0.3s all ease !important;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  /* Light mode scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d1d6 #f2f2f7;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: #f2f2f7;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: #d1d1d6;
+    border-radius: 4px;
+    border: 2px solid #f2f2f7;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: #8e8e93;
+  }
+
+  /* Dark mode scrollbar */
+  .dark * {
+    scrollbar-color: #48484a #1c1c1e;
+  }
+
+  .dark *::-webkit-scrollbar-track {
+    background: #1c1c1e;
+  }
+
+  .dark *::-webkit-scrollbar-thumb {
+    background-color: #48484a;
+    border: 2px solid #1c1c1e;
+  }
+
+  .dark *::-webkit-scrollbar-thumb:hover {
+    background-color: #636366;
+  }
+}
+
+@layer components {
+  /* GitHub Button Styles (keep for backward compatibility) */
+  .gh-btn-primary {
+    @apply px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg border border-green-700 transition-all duration-300 ease-in-out hover:shadow-lg flex items-center gap-2;
+  }
+  
+  .dark .gh-btn-primary {
+    @apply bg-[#30d158] hover:bg-green-600 border-[#30d158];
+  }
+
+  .gh-btn-secondary {
+    @apply px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium rounded-lg border border-gray-300 transition-all duration-300 ease-in-out hover:shadow-lg flex items-center gap-2;
+  }
+  
+  .dark .gh-btn-secondary {
+    @apply bg-[#2c2c2e] hover:bg-[#3a3a3c] text-white border-[#38383a];
+  }
+
+  .gh-btn-danger {
+    @apply px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg border border-red-600 transition-all duration-300 ease-in-out hover:shadow-lg flex items-center gap-2;
+  }
+  
+  .dark .gh-btn-danger {
+    @apply bg-[#ff453a] hover:bg-red-600 border-[#ff453a];
+  }
+
+  /* GitHub Card Styles */
+  .gh-card {
+    @apply bg-white rounded-xl border border-gray-200 p-6 shadow-sm transition-colors duration-200;
+  }
+  
+  .dark .gh-card {
+    @apply bg-[#2c2c2e] border-[#38383a];
+  }
+
+  /* GitHub Input Styles */
+  .gh-input {
+    @apply w-full px-3 py-2 bg-gray-50 text-gray-900 rounded-lg border border-gray-200 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors duration-150;
+  }
+  
+  .dark .gh-input {
+    @apply bg-[#1c1c1e] text-white border-[#38383a] placeholder-[#636366] focus:border-[#0a84ff] focus:ring-[#0a84ff]/20;
+  }
+
+  .gh-textarea {
+    @apply w-full px-3 py-2 bg-gray-50 text-gray-900 rounded-lg border border-gray-200 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors duration-150 resize-none;
+  }
+  
+  .dark .gh-textarea {
+    @apply bg-[#1c1c1e] text-white border-[#38383a] placeholder-[#636366] focus:border-[#0a84ff] focus:ring-[#0a84ff]/20;
+  }
+
+  .gh-select {
+    @apply w-full px-3 py-2 bg-gray-50 text-gray-900 rounded-lg border border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors duration-150 cursor-pointer;
+  }
+  
+  .dark .gh-select {
+    @apply bg-[#1c1c1e] text-white border-[#38383a] focus:border-[#0a84ff] focus:ring-[#0a84ff]/20;
+  }
+
+  /* GitHub Modal Styles */
+  .gh-modal-overlay {
+    @apply fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 transition-colors duration-200;
+  }
+  
+  .dark .gh-modal-overlay {
+    @apply bg-black/80;
+  }
+
+  .gh-modal {
+    @apply bg-white rounded-xl border border-gray-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto transition-colors duration-200;
+  }
+  
+  .dark .gh-modal {
+    @apply bg-[#2c2c2e] border-[#38383a];
+  }
+}
+
+/* Leaflet Map Styles - Light Mode */
+.leaflet-container {
+  background: #f2f2f7 !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: white !important;
+  color: #000000 !important;
+  border: 1px solid #d1d1d6 !important;
+}
+
+.leaflet-popup-tip {
+  background: white !important;
+  border: 1px solid #d1d1d6 !important;
+}
+
+.leaflet-control-zoom a {
+  background-color: white !important;
+  color: #000000 !important;
+  border: 1px solid #d1d1d6 !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: #f2f2f7 !important;
+}
+
+/* Leaflet Map Styles - Dark Mode */
+.dark .leaflet-container {
+  background: #1c1c1e !important;
+}
+
+.dark .leaflet-popup-content-wrapper {
+  background: #2c2c2e !important;
+  color: #ffffff !important;
+  border: 1px solid #48484a !important;
+}
+
+.dark .leaflet-popup-tip {
+  background: #2c2c2e !important;
+  border: 1px solid #48484a !important;
+}
+
+.dark .leaflet-control-zoom a {
+  background-color: #2c2c2e !important;
+  color: #ffffff !important;
+  border: 1px solid #48484a !important;
+}
+
+.dark .leaflet-control-zoom a:hover {
+  background-color: #3a3a3c !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: #30363d !important;
+}
+
+.leaflet-bar {
+  border: 1px solid #30363d !important;
+}
+
+/* GitHub Toast and Modal Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+  transform-origin: bottom right;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+  transform-origin: bottom right;
+}
+
+/* Apple Maps Dark Style */
+.apple-dark-map {
+  background-color: #35455c !important;
+}
+
+.apple-dark-map .leaflet-tile-pane {
+  filter: brightness(0.6) saturate(0.8) hue-rotate(200deg) contrast(1.2);
+  background-color: #35455c !important;
+}
+
+.apple-dark-map .leaflet-container {
+  background-color: #35455c !important;
+}
+
+.dark-map-tiles {
+  opacity: 0.7;
+}
+
+/* Leaflet controls in dark mode */
+.dark .leaflet-control-zoom a,
+.dark .leaflet-control-attribution {
+  background-color: #2c2c2e !important;
+  color: #ffffff !important;
+  border-color: #38383a !important;
+}
+
+.dark .leaflet-control-zoom a:hover {
+  background-color: #38383a !important;
+}
+
+.dark .leaflet-control-attribution a {
+  color: #0a84ff !important;
+}
+
+.dark .leaflet-popup-content-wrapper {
+  background-color: #2c2c2e !important;
+  color: #ffffff !important;
+}
+
+.dark .leaflet-popup-tip {
+  background-color: #2c2c2e !important;
+}
+
+/* Ensure modal and rendered docx/html preview text follow theme: black in light, white in dark
+   We target typical text tags and .prose content inside modals/previews, excluding buttons
+   and explicitly-colored controls. */
+.gh-modal h1, .gh-modal h2, .gh-modal h3, .gh-modal h4, .gh-modal p, .gh-modal span, .gh-modal li, .gh-modal a, .gh-modal td, .gh-modal th, .gh-modal strong, .gh-modal em, .gh-modal .prose, .gh-modal .prose * {
+  color: #000 !important;
+}
+.dark .gh-modal h1, .dark .gh-modal h2, .dark .gh-modal h3, .dark .gh-modal h4, .dark .gh-modal p, .dark .gh-modal span, .dark .gh-modal li, .dark .gh-modal a, .dark .gh-modal td, .dark .gh-modal th, .dark .gh-modal strong, .dark .gh-modal em, .dark .gh-modal .prose, .dark .gh-modal .prose * {
+  color: #fff !important;
+}
+
+/* Also make global .prose content theme-adaptive (docx/html renderings use .prose) */
+.prose, .prose * {
+  color: #000 !important;
+}
+.dark .prose, .dark .prose * {
+  color: #fff !important;
+}
+
+/* Smooth collapse/expand helper for lists (max-height + opacity + transform) */
+.transition-collapse {
+  transition: max-height 280ms cubic-bezier(.4,0,.2,1), opacity 220ms ease, transform 220ms ease;
+}
+.transition-collapse.overflow-hidden {
+  overflow: hidden;
+}
+.collapse-hidden {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  transform: translateY(-4px);
+}
+.collapse-visible {
+  /* large max-height to accommodate content; use a value that exceeds expected content height */
+  max-height: 2000px !important;
+  opacity: 1 !important;
+  transform: translateY(0);
+}

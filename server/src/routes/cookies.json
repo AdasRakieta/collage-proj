@@ -1,0 +1,47 @@
+[
+  {
+    "name": "NID",
+    "value": "526=CiM6ypCsZIucN3E-kBU3beyYAUFpEnz8bSm82-3XQdEtzOIkL3lnqurKxBCbdL-u9ZRrp0F6ij11-SEVj859IJ2Dp0KWy0Zn1WzUs-pjr5lnAsj9-ZoVah9DdgbZNEVRc6nNosIFcwSaBN6CuwUzYejv2wR8SW3PeLpQEFNaH9IPQo1tcArziB7OkLj78cDOglLfQYRTSBH1HzwmWUi1nxtjmk68S2JT9sc2T6uYPGA",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1780152779.128948,
+    "size": 242,
+    "httpOnly": true,
+    "secure": true,
+    "session": false,
+    "sameSite": "None",
+    "priority": "Medium",
+    "sameParty": false,
+    "sourceScheme": "Secure"
+  },
+  {
+    "name": "__Secure-BUCKET",
+    "value": "CJEB",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1779893579.586278,
+    "size": 19,
+    "httpOnly": true,
+    "secure": true,
+    "session": false,
+    "sameSite": "Lax",
+    "priority": "Medium",
+    "sameParty": false,
+    "sourceScheme": "Secure"
+  },
+  {
+    "name": "SOCS",
+    "value": "CAISNQgEEitib3FfaWRlbnRpdHlmcm9udGVuZHVpc2VydmVyXzIwMjUxMTI1LjA4X3AwGgJwbCACGgYIgMyjyQY",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1798469579.586053,
+    "size": 91,
+    "httpOnly": false,
+    "secure": true,
+    "session": false,
+    "sameSite": "Lax",
+    "priority": "Medium",
+    "sameParty": false,
+    "sourceScheme": "Secure"
+  }
+]

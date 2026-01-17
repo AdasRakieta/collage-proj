@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "journey_id": 1,
+    "type": "flight",
+    "from_location": "London",
+    "to_location": "Paris",
+    "departure_date": "2025-12-01T09:00:00.000Z",
+    "arrival_date": "2025-12-01T10:30:00.000Z",
+    "price": 120.00,
+    "currency": "EUR",
+    "booking_url": "",
+    "notes": "Sample flight",
+    "flight_number": "EX123",
+    "train_number": null,
+    "is_paid": false
+  }
+]
