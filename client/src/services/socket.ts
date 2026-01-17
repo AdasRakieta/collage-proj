@@ -1,71 +1,28 @@
-import { io, Socket } from 'socket.io-client';
+// Socket.IO was removed from the backend for MVP.
+// This file keeps a minimal no-op API so older UI code can compile safely.
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-const SOCKET_URL = API_URL.replace('/api', '');
+type Handler = (...args: any[]) => void;
 
-class SocketService {
-  private socket: Socket | null = null;
-
-  connect() {
-    if (this.socket?.connected) return;
-    
-    this.socket = io(SOCKET_URL, {
-      transports: ['websocket', 'polling'],
-      reconnectionDelay: 1000,
-      reconnection: true,
-      reconnectionAttempts: 10,
-      autoConnect: true,
-      timeout: 5000, // 5 second timeout
-    });
-
-    this.socket.on('connect', () => {
-      console.log('✅ Socket.IO connected');
-    });
-
-    this.socket.on('disconnect', () => {
-      console.log('❌ Socket.IO disconnected');
-    });
-
-    this.socket.on('connect_error', (error) => {
-      console.warn('⚠️ Socket.IO connection error (this is normal if server is restarting):', error.message);
-    });
-
-    this.socket.on('error', (error) => {
-      console.error('Socket.IO error:', error);
-    });
+class NoopSocketService {
+  connect(): void {
+    // no-op
   }
 
-  disconnect() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-    }
+  disconnect(): void {
+    // no-op
   }
 
-  on(event: string, callback: (...args: any[]) => void) {
-    if (!this.socket) {
-      console.warn('Socket not connected. Call connect() first.');
-      return;
-    }
-    this.socket.on(event, callback);
+  on(_event: string, _handler: Handler): void {
+    // no-op
   }
 
-  off(event: string, callback?: (...args: any[]) => void) {
-    if (!this.socket) return;
-    if (callback) {
-      this.socket.off(event, callback);
-    } else {
-      this.socket.off(event);
-    }
+  off(_event: string, _handler?: Handler): void {
+    // no-op
   }
 
-  emit(event: string, data: any) {
-    if (!this.socket) {
-      console.warn('Socket not connected. Call connect() first.');
-      return;
-    }
-    this.socket.emit(event, data);
+  emit(_event: string, ..._args: any[]): void {
+    // no-op
   }
 }
 
-export const socketService = new SocketService();
+export const socketService = new NoopSocketService();

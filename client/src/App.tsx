@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, MapPin, Calendar, DollarSign, Plane, Train, Bus, Car, Menu, X, Trash2, Edit2, CheckCircle2, XCircle, Settings, LogOut, User, Users, ChevronDown, ChevronRight, Eye, DownloadCloud, FileText, ListOrdered, Moon, Sun } from 'lucide-react';
+import { Plus, MapPin, Calendar, DollarSign, Plane, Train, Bus, Car, Menu, X, Trash2, Edit2, CheckCircle2, XCircle, Settings, LogOut, User, Users, ChevronDown, ChevronRight, ListOrdered, Moon, Sun } from 'lucide-react';
 import { useTheme } from './contexts/ThemeContext';
 import JourneyMapWrapper from './components/JourneyMapWrapper';
 import { PaymentCheckbox } from './components/PaymentCheckbox';
@@ -62,7 +62,7 @@ const formatDateTimeForDisplay = (date: Date | string | undefined): string => {
 
 function App() {
   // MVP - no authentication, use dummy user
-  const user = { id: 1, username: 'guest', email: 'guest@example.com' };
+  const user = { id: 1, username: 'guest', email: 'guest@example.com', role: 'user' as 'user' | 'admin' };
   const logout = () => { };
   const { theme, toggleTheme } = useTheme();
   const { toasts, closeToast, success, error, warning, info } = useToast();
@@ -74,9 +74,9 @@ function App() {
   const [loading, setLoading] = useState(false);
   // Attachments removed in MVP
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewTitle, setPreviewTitle] = useState('');
-  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [previewUrl] = useState<string | null>(null);
+  const [previewTitle] = useState('');
+  const [previewHtml] = useState<string | null>(null);
   const [showNewJourneyForm, setShowNewJourneyForm] = useState(false);
   const [extractModalOpen, setExtractModalOpen] = useState(false);
   const [extractResult, setExtractResult] = useState<any>(null);
@@ -115,8 +115,8 @@ function App() {
     type: 'flight',
     fromLocation: '',
     toLocation: '',
-    departureDate: undefined,
-    arrivalDate: undefined,
+    departureDate: '',
+    arrivalDate: '',
     price: 0,
     currency: 'PLN',
     isPaid: false,
@@ -129,9 +129,8 @@ function App() {
     description: '',
     estimatedCost: 0,
     currency: 'PLN',
-    bookingDate: '',
-    startTime: '',
-    endTime: '',
+    plannedDate: '',
+    plannedTime: '',
     addressStreet: '',
     addressHouseNumber: '',
     addressPostalCode: '',
@@ -790,7 +789,7 @@ function App() {
       setLoading(true);
       
       // Use the new createStop endpoint
-      const createdStop = await stopService.createStop(selectedJourney.id!, newStop);
+      await stopService.createStop(selectedJourney.id!, newStop);
       
       // Refresh journey from server to get updated totals and full stop data
       await refreshJourneyFromServer(selectedJourney.id!, true);
@@ -919,7 +918,7 @@ function App() {
             ? null
             : attractionData.duration,
       };
-      const createdAttraction = await attractionService.createAttraction(
+      await attractionService.createAttraction(
         selectedStopForAttraction!,
         payload
       );
@@ -977,7 +976,7 @@ function App() {
     }
   };
 
-  const handleDeleteAttraction = async (stopId: number, attractionId: number) => {
+  const handleDeleteAttraction = async (_stopId: number, attractionId: number) => {
     if (!selectedJourney) return;
 
     const confirmed = await confirmHook.confirm({
@@ -1040,7 +1039,7 @@ function App() {
 
     try {
       setLoading(true);
-      const updated = await stopService.updateStop(editingStop.id, editingStop);
+      await stopService.updateStop(editingStop.id, editingStop);
       
       // Refresh journey from server to get updated totals
       await refreshJourneyFromServer(selectedJourney.id!, true);
@@ -1130,7 +1129,7 @@ function App() {
         }
       }
       
-      const updated = await attractionService.updateAttraction(attractionData.id!, attractionData);
+      await attractionService.updateAttraction(attractionData.id!, attractionData);
       
       // Refresh journey from server to get updated totals
       await refreshJourneyFromServer(selectedJourney.id!, true);
@@ -1152,7 +1151,7 @@ function App() {
 
     try {
       setLoading(true);
-      const updated = await transportService.updateTransport(editingTransport.id, editingTransport);
+      await transportService.updateTransport(editingTransport.id, editingTransport);
       
       // Refresh journey from server to get updated totals
       await refreshJourneyFromServer(selectedJourney.id!, true);
@@ -1177,24 +1176,31 @@ function App() {
     try {
       setLoading(true);
       
+      const depRaw = typeof newTransport.departureDate === 'string'
+        ? newTransport.departureDate
+        : (newTransport.departureDate ? newTransport.departureDate.toISOString() : '');
+      const arrRaw = typeof newTransport.arrivalDate === 'string'
+        ? newTransport.arrivalDate
+        : (newTransport.arrivalDate ? newTransport.arrivalDate.toISOString() : '');
+
       // Prepare transport data with proper date formatting
       const transportData = {
         ...newTransport,
         // If dates are provided in datetime-local format (YYYY-MM-DDTHH:MM), ensure they have seconds
-        departureDate: newTransport.departureDate && newTransport.departureDate.trim() 
-          ? (newTransport.departureDate.includes('T') && !newTransport.departureDate.match(/:\d{2}:\d{2}/) 
-              ? `${newTransport.departureDate}:00` 
-              : newTransport.departureDate)
-          : undefined,
-        arrivalDate: newTransport.arrivalDate && newTransport.arrivalDate.trim()
-          ? (newTransport.arrivalDate.includes('T') && !newTransport.arrivalDate.match(/:\d{2}:\d{2}/)
-              ? `${newTransport.arrivalDate}:00`
-              : newTransport.arrivalDate)
-          : undefined,
+        departureDate: depRaw && depRaw.trim()
+          ? (depRaw.includes('T') && !depRaw.match(/:\d{2}:\d{2}/)
+              ? `${depRaw}:00`
+              : depRaw)
+          : '',
+        arrivalDate: arrRaw && arrRaw.trim()
+          ? (arrRaw.includes('T') && !arrRaw.match(/:\d{2}:\d{2}/)
+              ? `${arrRaw}:00`
+              : arrRaw)
+          : '',
       };
       
       // Use transportService instead of updating journey directly
-      const createdTransport = await transportService.createTransport(selectedJourney.id!, transportData);
+      await transportService.createTransport(selectedJourney.id!, transportData);
       
       // Refresh journey from server to get updated totals
       await refreshJourneyFromServer(selectedJourney.id!, true);
@@ -1203,8 +1209,8 @@ function App() {
         type: 'flight',
         fromLocation: '',
         toLocation: '',
-        departureDate: undefined,
-        arrivalDate: undefined,
+        departureDate: '',
+        arrivalDate: '',
         price: 0,
         currency: 'PLN',
         bookingUrl: '',
@@ -1313,58 +1319,6 @@ function App() {
     }
   };
 
-  // Calculate total estimated cost dynamically from stops, transports, and attractions
-  const calculateJourneyTotalCost = (journey: Journey): number => {
-    // Always compute totals from item-level prices on the client to ensure
-    // consistency between the journey list and the selected journey details.
-    // Fallback: compute locally while converting per-item currencies to journey.currency when possible
-    const mainCurr = journey.currency || 'PLN';
-    const stopsCost = journey.stops?.reduce((sum, stop) => {
-      const price = (stop as any).accommodationPrice ?? (stop as any).accommodation_price ?? 0;
-      const from = (stop as any).accommodationCurrency || (stop as any).accommodation_currency || mainCurr;
-      const stored = getStoredConverted(stop, 'accommodation_price_converted', 'accommodation_price_converted_currency');
-      if (stored) {
-        // stored value should already be in journey currency or include currency metadata
-        if (stored.currency === mainCurr) return sum + stored.value;
-        const convStored = convertAmount(stored.value, stored.currency, mainCurr);
-        return sum + (convStored ?? stored.value);
-      }
-      const conv = convertAmount(price || 0, from, mainCurr);
-      return sum + (conv ?? price ?? 0);
-    }, 0) || 0;
-
-    const attractionsCost = journey.stops?.reduce((sum, stop) => {
-      const attrSum = (stop.attractions || []).reduce((s, a) => {
-        const price = (a as any).estimatedCost ?? (a as any).estimated_cost ?? 0;
-        const from = (a as any).currency || (a as any).curr || mainCurr;
-        const stored = getStoredConverted(a, 'estimated_cost_converted', 'estimated_cost_converted_currency');
-        if (stored) {
-          if (stored.currency === mainCurr) return s + stored.value;
-          const convStored = convertAmount(stored.value, stored.currency, mainCurr);
-          return s + (convStored ?? stored.value);
-        }
-        const conv = convertAmount(price || 0, from, mainCurr);
-        return s + (conv ?? price ?? 0);
-      }, 0);
-      return sum + attrSum;
-    }, 0) || 0;
-
-    const transportsCost = journey.transports?.reduce((sum, t) => {
-      const price = (t as any).price ?? 0;
-      const from = (t as any).currency || mainCurr;
-      const stored = getStoredConverted(t, 'price_converted', 'price_converted_currency');
-      if (stored) {
-        if (stored.currency === mainCurr) return sum + stored.value;
-        const convStored = convertAmount(stored.value, stored.currency, mainCurr);
-        return sum + (convStored ?? stored.value);
-      }
-      const conv = convertAmount(price || 0, from, mainCurr);
-      return sum + (conv ?? price ?? 0);
-    }, 0) || 0;
-
-    return stopsCost + attractionsCost + transportsCost;
-  };
-
   // Calculate journey total converted to a provided base currency (used by the "No Journey Selected" summary)
   const calculateJourneyTotalInBase = (journey: Journey, base: string): number => {
     const mainCurr = journey.currency || base;
@@ -1415,27 +1369,7 @@ function App() {
     return total;
   };
 
-  // Share journey handler
-  const handleShareJourney = async () => {
-    if (!selectedJourney || !shareEmailOrUsername.trim()) {
-      warning('Please enter email or username');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await journeyShareService.shareJourney(selectedJourney.id!, shareEmailOrUsername, shareRole);
-      success(`Journey shared with ${shareEmailOrUsername}!`);
-      setShowShareModal(false);
-      setShareEmailOrUsername('');
-      setShareRole('edit');
-    } catch (err: any) {
-      console.error('Failed to share journey:', err);
-      error(err.message || 'Failed to share journey');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Sharing removed in MVP
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#1c1c1e] font-github transition-colors duration-200">
@@ -2155,8 +2089,8 @@ function App() {
                                           setEditingStop(freshStop);
                                           setShowEditStopForm(true);
                                           // Attachments removed in MVP
-                                        } catch (error) {
-                                          console.error('Failed to fetch stop:', error);
+                                        } catch (e) {
+                                          console.error('Failed to fetch stop:', e);
                                           error('Failed to load stop data');
                                         }
                                       }}
@@ -3271,13 +3205,13 @@ function App() {
                         if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
                           val = val.replace(' ', 'T');
                         }
-                        setNewTransport({ ...newTransport, departureDate: val || undefined });
+                        setNewTransport({ ...newTransport, departureDate: val || '' });
                       }}
                       onBlur={e => {
                         let val = e.target.value;
                         if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
                           val = val.replace(' ', 'T');
-                          setNewTransport(prev => ({ ...prev, departureDate: val || undefined }));
+                          setNewTransport(prev => ({ ...prev, departureDate: val || '' }));
                         }
                       }}
                       className="gh-input"
@@ -3296,13 +3230,13 @@ function App() {
                         if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
                           val = val.replace(' ', 'T');
                         }
-                        setNewTransport({ ...newTransport, arrivalDate: val || undefined });
+                        setNewTransport({ ...newTransport, arrivalDate: val || '' });
                       }}
                       onBlur={e => {
                         let val = e.target.value;
                         if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
                           val = val.replace(' ', 'T');
-                          setNewTransport(prev => ({ ...prev, arrivalDate: val || undefined }));
+                          setNewTransport(prev => ({ ...prev, arrivalDate: val || '' }));
                         }
                       }}
                       className="gh-input"
