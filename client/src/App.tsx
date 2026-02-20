@@ -751,11 +751,19 @@ function App() {
       const refreshed = await refreshJourneyFromServer(stop.journeyId);
       if (refreshed) return;
 
+      // Clear stale server-cached conversions so formatItemPrice uses fresh client-side conversion
+      const stopClean = {
+        ...stop,
+        accommodationPriceConverted: null,
+        accommodationPriceConvertedCurrency: null,
+        accommodation_price_converted: null,
+        accommodation_price_converted_currency: null,
+      };
       setJourneys(prev => prev.map(j => {
         if (j.id === stop.journeyId) {
           const updated = { 
             ...j, 
-            stops: (j.stops || []).map(s => s.id === stop.id ? { ...stop, attractions: s.attractions } : s)
+            stops: (j.stops || []).map(s => s.id === stop.id ? { ...stopClean, attractions: s.attractions } : s)
           } as Journey;
           updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
           return updated;
@@ -765,7 +773,7 @@ function App() {
       if (selectedJourney?.id === stop.journeyId) {
         setSelectedJourney(prev => {
           if (!prev) return null;
-          const updated = { ...prev, stops: (prev.stops || []).map(s => s.id === stop.id ? { ...stop, attractions: s.attractions } : s) } as Journey;
+          const updated = { ...prev, stops: (prev.stops || []).map(s => s.id === stop.id ? { ...stopClean, attractions: s.attractions } : s) } as Journey;
           updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
           return updated;
         });
@@ -1585,9 +1593,18 @@ function App() {
     try {
       setLoading(true);
       const updated = await stopService.updateStop(editingStop.id, editingStop);
+      // Clear stale server-cached conversions so the UI uses fresh client-side conversion
+      // until the next full server refresh recomputes them.
+      const updatedClean = {
+        ...updated,
+        accommodationPriceConverted: null,
+        accommodationPriceConvertedCurrency: null,
+        accommodation_price_converted: null,
+        accommodation_price_converted_currency: null,
+      };
       
       const updatedStops = selectedJourney.stops?.map(s =>
-        s.id === updated.id ? { ...updated, attractions: s.attractions } : s
+        s.id === updated.id ? { ...updatedClean, attractions: s.attractions } : s
       );
       const updatedJourney = { ...selectedJourney, stops: updatedStops };
       
