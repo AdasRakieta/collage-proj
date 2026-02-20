@@ -27,10 +27,13 @@ import {
 const router = express.Router();
 
 // Rate limiting dla auth endpoints (ochrona przed brute-force)
+// rate limiter configuration may be relaxed in development so that
+// developers don't get locked out while testing credentials repeatedly.
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minut
-  max: 5, // max 5 prób na IP
-  message: 'Too many authentication attempts, please try again after 15 minutes',
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === 'production' ? 5 : 1000,
+  // express-rate-limit attaches this message as `err.message` or body
+  message: { error: 'Too many authentication attempts, please try again after 15 minutes' },
   standardHeaders: true,
   legacyHeaders: false,
 });

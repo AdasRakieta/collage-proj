@@ -707,43 +707,43 @@ const SettingsPage: React.FC = () => {
                   <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 dark:text-[#98989d] mb-2">
                     Current Password
                   </label>
-                  <input
+                  <PasswordField
                     id="currentPassword"
-                    type="password"
+                    icon={<Lock size={20} />}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#1c1c1e] border border-gray-200 dark:border-[#38383a] text-gray-900 dark:text-[#ffffff] placeholder-gray-400 dark:placeholder-[#636366] focus:border-blue-500 dark:focus:border-[#0a84ff] focus:ring-2 focus:ring-blue-200 dark:focus:ring-[#0a84ff]/20 outline-none transition-all"
                     placeholder="Enter current password"
                     required
+                    className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#1c1c1e] border border-gray-200 dark:border-[#38383a] text-gray-900 dark:text-[#ffffff] placeholder-gray-400 dark:placeholder-[#636366] focus:border-blue-500 dark:focus:border-[#0a84ff] focus:ring-2 focus:ring-blue-200 dark:focus:ring-[#0a84ff]/20 outline-none transition-all"
                   />
                 </div>
                 <div>
                   <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 dark:text-[#98989d] mb-2">
                     New Password
                   </label>
-                  <input
+                  <PasswordField
                     id="newPassword"
-                    type="password"
+                    icon={<Lock size={20} />}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#1c1c1e] border border-gray-200 dark:border-[#38383a] text-gray-900 dark:text-[#ffffff] placeholder-gray-400 dark:placeholder-[#636366] focus:border-blue-500 dark:focus:border-[#0a84ff] focus:ring-2 focus:ring-blue-200 dark:focus:ring-[#0a84ff]/20 outline-none transition-all"
                     placeholder="Enter new password"
                     required
                     minLength={8}
+                    className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#1c1c1e] border border-gray-200 dark:border-[#38383a] text-gray-900 dark:text-[#ffffff] placeholder-gray-400 dark:placeholder-[#636366] focus:border-blue-500 dark:focus:border-[#0a84ff] focus:ring-2 focus:ring-blue-200 dark:focus:ring-[#0a84ff]/20 outline-none transition-all"
                   />
                 </div>
                 <div>
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-[#98989d] mb-2">
                     Confirm New Password
                   </label>
-                  <input
+                  <PasswordField
                     id="confirmPassword"
-                    type="password"
+                    icon={<Lock size={20} />}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#1c1c1e] border border-gray-200 dark:border-[#38383a] text-gray-900 dark:text-[#ffffff] placeholder-gray-400 dark:placeholder-[#636366] focus:border-blue-500 dark:focus:border-[#0a84ff] focus:ring-2 focus:ring-blue-200 dark:focus:ring-[#0a84ff]/20 outline-none transition-all"
                     placeholder="Confirm new password"
                     required
+                    className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#1c1c1e] border border-gray-200 dark:border-[#38383a] text-gray-900 dark:text-[#ffffff] placeholder-gray-400 dark:placeholder-[#636366] focus:border-blue-500 dark:focus:border-[#0a84ff] focus:ring-2 focus:ring-blue-200 dark:focus:ring-[#0a84ff]/20 outline-none transition-all"
                   />
                 </div>
                 <button

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { authAPI } from '../services/authApi';
 import { MapPin, Mail, Lock, AlertCircle, CheckCircle, Loader2, ArrowLeft } from 'lucide-react';
+import PasswordField from '../components/PasswordField';
 
 const ForgotPasswordPage: React.FC = () => {
   const [step, setStep] = useState<'email' | 'code'>('email');
@@ -153,39 +154,27 @@ const ForgotPasswordPage: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-300 mb-2">
-                  New Password
-                </label>
-                <div className="relative">
-                  <Lock size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-                  <input
-                    id="newPassword"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-[#0d1117] border border-[#30363d] text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
-                    placeholder="Enter new password"
-                    required
-                  />
-                </div>
+                <PasswordField
+                  id="newPassword"
+                  label="New Password"
+                  icon={<Lock size={20} />}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  required
+                />
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <Lock size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-[#0d1117] border border-[#30363d] text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
-                    placeholder="Confirm new password"
-                    required
-                  />
-                </div>
+                <PasswordField
+                  id="confirmPassword"
+                  label="Confirm Password"
+                  icon={<Lock size={20} />}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  required
+                />
               </div>
 
               <button

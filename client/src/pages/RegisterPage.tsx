@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authAPI } from '../services/authApi';
 import { MapPin, User, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import PasswordField from '../components/PasswordField';
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -131,11 +132,26 @@ const RegisterPage: React.FC = () => {
                   </div>
                   <div>
                     <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">Password</label>
-                    <input id="password" type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-[#0d1117] border border-[#30363d] text-white" placeholder="Create a password" required minLength={8} />
+                    <PasswordField
+                      id="password"
+                      icon={<Lock size={20} />}
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      placeholder="Create a password"
+                      required
+                      minLength={8}
+                    />
                   </div>
                   <div>
                     <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
-                    <input id="confirmPassword" type="password" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-[#0d1117] border border-[#30363d] text-white" placeholder="Confirm your password" required />
+                    <PasswordField
+                      id="confirmPassword"
+                      icon={<Lock size={20} />}
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                      placeholder="Confirm your password"
+                      required
+                    />
                   </div>
                   <div className="flex items-center gap-3">
                     <button type="button" onClick={() => navigate('/login')} className="px-4 py-3 bg-red-600 hover:bg-red-700 dark:bg-[#ff453a] dark:hover:bg-red-600 text-white rounded-xl transition-all">Back</button>
@@ -204,19 +220,15 @@ const RegisterPage: React.FC = () => {
                 <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
                   Password
                 </label>
-                <div className="relative">
-                  <Lock size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-                  <input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-[#0d1117] border border-[#30363d] text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
-                    placeholder="Create a password"
-                    required
-                    minLength={8}
-                  />
-                </div>
+                <PasswordField
+                  id="password"
+                  icon={<Lock size={20} />}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="Create a password"
+                  required
+                  minLength={8}
+                />
                 <p className="mt-2 text-xs text-gray-400">
                   Must be at least 8 characters with uppercase, lowercase, and numbers
                 </p>
