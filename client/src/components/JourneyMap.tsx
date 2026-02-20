@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useTheme } from '../contexts/ThemeContext';
 import { parseYMDToDate } from '../utils/date';
+import { getAttractionTagInfo } from '../utils/attractionTags';
 
 // Fix for default marker icons in React-Leaflet
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -28,15 +29,20 @@ const stopIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
-// Custom icon for attractions (red)
-const attractionIcon = new L.Icon({
-  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNSIgaGVpZ2h0PSI0MSIgdmlld0JveD0iMCAwIDI1IDQxIj48cGF0aCBmaWxsPSIjRkYzQjMwIiBkPSJNMTIuNSAwQzUuNiAwIDAgNS42IDAgMTIuNWMwIDguOSAxMi41IDI4LjUgMTIuNSAyOC41UzI1IDIxLjQgMjUgMTIuNUMyNSA1LjYgMTkuNCAwIDEyLjUgMHptMCAxN2MtMi41IDAtNC41LTItNC41LTQuNXMyLTQuNSA0LjUtNC41IDQuNSAyIDQuNSA0LjUtMiA0LjUtNC41IDQuNXoiLz48L3N2Zz4=',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowUrl: markerShadow,
-  shadowSize: [41, 41],
-});
+// Utility to generate a colored SVG marker icon based on supplied hex color
+const makeAttractionIcon = (hexColor: string) => {
+  // base SVG from before but with dynamic fill
+  const svg = `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="25" height="41" viewBox="0 0 25 41"><path fill="${hexColor}" d="M12.5 0C5.6 0 0 5.6 0 12.5c0 8.9 12.5 28.5 12.5 28.5S25 21.4 25 12.5C25 5.6 19.4 0 12.5 0zm0 17c-2.5 0-4.5-2-4.5-4.5S10 8 12.5 8 17 10 17 12.5 15 17 12.5 17z"/></svg>`;
+  const url = `data:image/svg+xml;base64,${btoa(svg)}`;
+  return new L.Icon({
+    iconUrl: url,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowUrl: markerShadow,
+    shadowSize: [41, 41],
+  });
+};
 
 interface Attraction {
   id?: number;
@@ -47,6 +53,7 @@ interface Attraction {
   address?: string;
   latitude?: number | null;
   longitude?: number | null;
+  tag?: string | null; // optional category matching client types
 }
 
 interface Stop {
@@ -110,7 +117,14 @@ const JourneyMap: React.FC<JourneyMapProps> = ({
   ratesCache = null,
 }) => {
   const { theme } = useTheme();
-  const [mapCenter] = useState<[number, number]>(center); // Only set once on mount
+  const [mapCenter, setMapCenter] = useState<[number, number]>(center); // initialize
+
+  // if parent changes center prop (e.g. selecting a stop), update state
+  React.useEffect(() => {
+    if (center && (center[0] !== mapCenter[0] || center[1] !== mapCenter[1])) {
+      setMapCenter(center);
+    }
+  }, [center]);
 
   // Choose tile layer based on theme - use lighter dark tiles
   const tileLayerUrl = theme === 'dark'
@@ -134,7 +148,7 @@ const JourneyMap: React.FC<JourneyMapProps> = ({
     })
     .map(loc => [loc.latitude, loc.longitude] as [number, number]);
 
-  // Collect all attractions with coordinates
+  // Collect all attractions with coordinates (preserve tag info)
   const allAttractions: Array<Attraction & { stopCity?: string }> = [];
   locations.forEach(stop => {
     if (stop.attractions) {
@@ -245,12 +259,16 @@ const JourneyMap: React.FC<JourneyMapProps> = ({
       ))}
       
       {/* Attraction markers (red) */}
-      {allAttractions.map((attraction, index) => (
-        <Marker
-          key={`attraction-${index}`}
-          position={[attraction.latitude!, attraction.longitude!]}
-          icon={attractionIcon}
-        >
+      {allAttractions.map((attraction, index) => {
+        // choose color based on tag, default to red if unknown
+        const color = getAttractionTagInfo(attraction.tag as any)?.markerColor || '#FF3B30';
+        const icon = makeAttractionIcon(color);
+        return (
+          <Marker
+            key={`attraction-${index}`}
+            position={[attraction.latitude!, attraction.longitude!]}
+            icon={icon}
+          >
           <Popup>
             <div className="text-sm min-w-[200px]">
               <strong className="text-base dark:text-white">🎯 {attraction.name}</strong>
@@ -300,7 +318,8 @@ const JourneyMap: React.FC<JourneyMapProps> = ({
             </div>
           </Popup>
         </Marker>
-      ))}
+      );
+      })}
     </MapContainer>
   );
 };

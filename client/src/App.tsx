@@ -1086,11 +1086,16 @@ function App() {
     try {
       setLoading(true);
       const updated = await journeyService.updateJourney(editingJourney.id, editingJourney);
-      
-      setJourneys(journeys.map(j => j.id === updated.id ? updated : j));
+
+      // updated object does not include related stops/transports, so fetch full journey
+      const refreshed = await refreshJourneyFromServer(updated.id);
+
+      // update list entry using refreshed data if available, otherwise fallback to updated
+      setJourneys(journeys.map(j => j.id === updated.id ? (refreshed || updated) : j));
       if (selectedJourney?.id === updated.id) {
-        setSelectedJourney(updated);
+        setSelectedJourney(refreshed || updated);
       }
+
       setShowEditJourneyForm(false);
       setEditingJourney(null);
       success('Journey updated successfully!');
@@ -1286,6 +1291,17 @@ function App() {
     if (!selectedJourney || !newStop.city || !newStop.country) {
       warning('Please fill in city and country');
       return;
+    }
+    // validate dates against journey range
+    if (newStop.arrivalDate && newStop.departureDate) {
+      const journeyStart = new Date(selectedJourney.startDate);
+      const journeyEnd = new Date(selectedJourney.endDate);
+      const arr = new Date(newStop.arrivalDate);
+      const dep = new Date(newStop.departureDate);
+      if (arr < journeyStart || dep > journeyEnd) {
+        warning(`Stop dates must fall between journey ${selectedJourney.startDate} and ${selectedJourney.endDate}`);
+        return;
+      }
     }
 
     try {
@@ -1703,6 +1719,17 @@ function App() {
     if (!selectedJourney || !newTransport.fromLocation || !newTransport.toLocation) {
       warning('Please fill in all required fields');
       return;
+    }
+    // ensure dates inside journey
+    if (newTransport.departureDate || newTransport.arrivalDate) {
+      const journeyStart = new Date(selectedJourney.startDate);
+      const journeyEnd = new Date(selectedJourney.endDate);
+      const dep = newTransport.departureDate ? new Date(newTransport.departureDate) : journeyStart;
+      const arr = newTransport.arrivalDate ? new Date(newTransport.arrivalDate) : dep;
+      if (dep < journeyStart || arr > journeyEnd) {
+        warning(`Transport dates must fall between journey ${selectedJourney.startDate} and ${selectedJourney.endDate}`);
+        return;
+      }
     }
 
     try {
@@ -2651,10 +2678,10 @@ function App() {
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-[#ffffff]">Stops</h3>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => setImportModalOpen(true)} className="gh-btn-secondary text-sm" disabled={!selectedJourney || loading} title="Import stops from map">
+                      {/* <button onClick={() => setImportModalOpen(true)} className="gh-btn-secondary text-sm" disabled={!selectedJourney || loading} title="Import stops from map">
                         <DownloadCloud className="w-4 h-4" />
                         Import
-                      </button>
+                      </button> */}
 
                       <button
                         onClick={() => setShowStopForm(true)}
@@ -3587,7 +3614,7 @@ function App() {
                       </div>
                     );
                   })()}
-                <div className="bg-gray-50 dark:bg-[#1c1c1e] p-3 rounded-lg border border-gray-200 dark:border-[#38383a]">
+                <div className="mt-[15px] bg-gray-50 dark:bg-[#1c1c1e] p-3 rounded-lg border border-gray-200 dark:border-[#38383a]">
                   <p className="text-sm text-gray-600 dark:text-[#98989d]">
                     📍 Coordinates: {newStop.latitude?.toFixed(4)}, {newStop.longitude?.toFixed(4)}
                   </p>

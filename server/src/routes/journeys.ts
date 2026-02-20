@@ -26,6 +26,10 @@ import {
 } from '../schemas/journey.schema';
 
 const router = express.Router();
+import { authenticateToken } from '../middleware/auth';
+
+// all journey endpoints require authentication; controllers assume req.user
+router.use(authenticateToken);
 
 // Public routes with validation
 router.post('/', validate(createJourneySchema), createJourney);

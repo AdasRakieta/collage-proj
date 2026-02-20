@@ -175,7 +175,7 @@ const RegisterPage: React.FC = () => {
                 </form>
               )}
 
-              <div className="mt-6">
+              {/* <div className="mt-6">
                 <p className="text-gray-400 mb-2">Or request an account via Google (admin approval required)</p>
                 <div className="flex justify-center">
                   <button
@@ -192,7 +192,7 @@ const RegisterPage: React.FC = () => {
                     Register with Google
                   </button>
                 </div>
-              </div>
+              </div> */}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { MapPin, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import PasswordField from '../components/PasswordField';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -75,24 +76,16 @@ const LoginPage: React.FC = () => {
             </div>
 
             {/* Password Input */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-                <input
-                  id="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-[#0d1117] border border-[#30363d] text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
-                  placeholder="Enter your password"
-                  required
-                  autoComplete="current-password"
-                />
-              </div>
-            </div>
+            <PasswordField
+              id="password"
+              label="Password"
+              icon={<Lock size={20} />}
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              placeholder="Enter your password"
+              required
+              autoComplete="current-password"
+            />
 
             {/* Forgot Password Link */}
             <div className="text-right">
@@ -132,17 +125,17 @@ const LoginPage: React.FC = () => {
           </form>
 
           {/* Divider */}
-          <div className="relative my-6">
+          {/* <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-[#30363d]"></div>
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-[#161b22] text-gray-400">Or continue with</span>
             </div>
-          </div>
+          </div> */}
 
           {/* OAuth Buttons */}
-          <div className="flex justify-center">
+          {/* <div className="flex justify-center">
             <button
               type="button"
               className="flex items-center justify-center gap-2 px-6 py-3 bg-[#0d1117] border border-[#30363d] rounded-xl hover:bg-[#1c2128] transition-all duration-300 ease-in-out hover:shadow-lg font-medium text-gray-300"
@@ -172,7 +165,7 @@ const LoginPage: React.FC = () => {
               Google
             </button>
 
-          </div>
+          </div> */}
 
          
         </div>

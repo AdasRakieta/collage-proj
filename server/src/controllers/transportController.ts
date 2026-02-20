@@ -43,6 +43,28 @@ const toCamelCase = (obj: any): any => {
   return obj;
 };
 
+// utility copied from stops: ensure dates are inside journey
+async function assertWithinJourney(journeyId: number, start: Date, end: Date) {
+  if (DB_AVAILABLE) {
+    const r = await query('SELECT start_date, end_date FROM journeys WHERE id=$1', [journeyId]);
+    if (r.rows.length === 0) throw new Error('Journey not found');
+    const { start_date, end_date } = r.rows[0];
+    const js = new Date(start_date);
+    const je = new Date(end_date);
+    if (start < js || end > je) {
+      throw new Error(`Dates must be within journey range (${js.toISOString().slice(0,10)} - ${je.toISOString().slice(0,10)})`);
+    }
+  } else {
+    const journey = await jsonStore.getById('journeys', journeyId);
+    if (!journey) throw new Error('Journey not found');
+    const js = new Date(journey.start_date);
+    const je = new Date(journey.end_date);
+    if (start < js || end > je) {
+      throw new Error(`Dates must be within journey range (${js.toISOString().slice(0,10)} - ${je.toISOString().slice(0,10)})`);
+    }
+  }
+}
+
 // Get all transports for a journey
 export const getTransportsByJourneyId = async (req: Request, res: Response) => {
   try {
@@ -80,6 +102,15 @@ export const createTransport = async (req: Request, res: Response) => {
       flightNumber,
       trainNumber
     } = req.body;
+
+    // date range check
+    try {
+      const start = departureDate ? new Date(departureDate) : new Date();
+      const end = arrivalDate ? new Date(arrivalDate) : start;
+      await assertWithinJourney(journeyId, start, end);
+    } catch (e: any) {
+      return res.status(400).json({ message: e.message });
+    }
     
     // Convert empty strings to null for optional date fields
     const cleanArrivalDate = arrivalDate && arrivalDate.trim() !== '' ? arrivalDate : null;
@@ -202,7 +233,28 @@ export const updateTransport = async (req: Request, res: Response) => {
       flightNumber,
       trainNumber
     } = req.body;
-    
+
+    // if user changes dates, ensure range inside journey
+    if (departureDate || arrivalDate) {
+      let journeyId: number | null = null;
+      if (!DB_AVAILABLE) {
+        const t = await jsonStore.getById('transports', transportId);
+        if (t) journeyId = t.journey_id;
+      } else {
+        const tr = await query('SELECT journey_id FROM transports WHERE id=$1', [transportId]);
+        if (tr.rows.length) journeyId = tr.rows[0].journey_id;
+      }
+      if (journeyId) {
+        const start = departureDate ? new Date(departureDate) : new Date();
+        const end = arrivalDate ? new Date(arrivalDate) : start;
+        try {
+          await assertWithinJourney(journeyId, start, end);
+        } catch (e: any) {
+          return res.status(400).json({ message: e.message });
+        }
+      }
+    }
+
     // Convert empty strings to null for optional date fields
     const cleanArrivalDate = arrivalDate && arrivalDate.trim() !== '' ? arrivalDate : null;
     const cleanDepartureDate = departureDate && departureDate.trim() !== '' ? departureDate : null;

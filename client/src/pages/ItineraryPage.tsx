@@ -1672,6 +1672,8 @@ const ItineraryPage: React.FC = () => {
               ))}
             </div>
             
+            {/* Compute default center (first stop) so map isn't stuck on London */}
+            { /* calculate outside JSX for clarity */ }
             {/* Map container */}
             <div className="h-[600px] rounded-xl overflow-hidden border border-gray-200 dark:border-[#38383a]">
               <JourneyMapWrapper
@@ -1697,7 +1699,9 @@ const ItineraryPage: React.FC = () => {
                       }
                       return undefined;
                     })()
-                  : undefined
+                  : (stops.length > 0 && stops[0].latitude != null && stops[0].longitude != null
+                      ? ([stops[0].latitude, stops[0].longitude] as [number, number])
+                      : undefined)
                 }
                 zoom={selectedStopForMap ? 14 : 6}
               />

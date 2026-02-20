@@ -26,8 +26,8 @@ const PasswordField: React.FC<PasswordFieldProps> = ({ label, icon, ...props }) 
           {...props}
           type={visible ? 'text' : 'password'}
           className={
-            props.className ||
-            `w-full ${icon ? 'pl-12' : ''} pr-12 py-3 rounded-xl bg-[#0d1117] border border-[#30363d] text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all`
+            // always keep user's custom classes but add padding if icon exists
+            `${props.className ? props.className : 'w-full pr-12 py-3 rounded-xl bg-[#0d1117] border border-[#30363d] text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all'} ${icon ? 'pl-12' : ''}`.trim()
           }
         />
         <button

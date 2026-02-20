@@ -21,6 +21,9 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
+  // debug
+  console.log('🛡️ authenticateToken header:', authHeader);
+
   if (!token) {
     return res.status(401).json({ error: 'Access token required' });
   }

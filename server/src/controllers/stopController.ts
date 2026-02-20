@@ -44,6 +44,28 @@ const toCamelCase = (obj: any): any => {
   return obj;
 };
 
+// utility: ensure a given date range falls inside the journey boundaries
+async function assertWithinJourney(journeyId: number, start: Date, end: Date) {
+  if (DB_AVAILABLE) {
+    const r = await query('SELECT start_date, end_date FROM journeys WHERE id=$1', [journeyId]);
+    if (r.rows.length === 0) throw new Error('Journey not found');
+    const { start_date, end_date } = r.rows[0];
+    const js = new Date(start_date);
+    const je = new Date(end_date);
+    if (start < js || end > je) {
+      throw new Error(`Dates must be within journey range (${js.toISOString().slice(0,10)} - ${je.toISOString().slice(0,10)})`);
+    }
+  } else {
+    const journey = await jsonStore.getById('journeys', journeyId);
+    if (!journey) throw new Error('Journey not found');
+    const js = new Date(journey.start_date);
+    const je = new Date(journey.end_date);
+    if (start < js || end > je) {
+      throw new Error(`Dates must be within journey range (${js.toISOString().slice(0,10)} - ${je.toISOString().slice(0,10)})`);
+    }
+  }
+}
+
 // Get all stops for a journey
 export const getStopsByJourneyId = async (req: Request, res: Response) => {
   try {
@@ -117,6 +139,13 @@ export const createStop = async (req: Request, res: Response) => {
     if (addressHouseNumber === '' || addressHouseNumber === undefined) addressHouseNumber = null;
     if (postalCode === '' || postalCode === undefined) postalCode = null;
     
+    // ensure arrival/departure fall within journey
+    try {
+      await assertWithinJourney(journeyId, new Date(arrivalDate), new Date(departureDate));
+    } catch (e: any) {
+      return res.status(400).json({ message: e.message });
+    }
+
     if (!DB_AVAILABLE) {
       if (addressStreet === '' || addressStreet === undefined) addressStreet = null;
       if (addressHouseNumber === '' || addressHouseNumber === undefined) addressHouseNumber = null;

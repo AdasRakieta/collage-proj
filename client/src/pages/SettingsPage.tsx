@@ -21,6 +21,7 @@ import {
   Check,
   Share2
 } from 'lucide-react';
+import PasswordField from '../components/PasswordField';
 import { userAPI, adminAPI } from '../services/authApi';
 import type { User as UserType, Invitation } from '../types/auth';
 import type { JourneyShare } from '../types/journey';
@@ -714,7 +715,7 @@ const SettingsPage: React.FC = () => {
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="Enter current password"
                     required
-                    className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#1c1c1e] border border-gray-200 dark:border-[#38383a] text-gray-900 dark:text-[#ffffff] placeholder-gray-400 dark:placeholder-[#636366] focus:border-blue-500 dark:focus:border-[#0a84ff] focus:ring-2 focus:ring-blue-200 dark:focus:ring-[#0a84ff]/20 outline-none transition-all"
+                    className="pl-12 w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#1c1c1e] border border-gray-200 dark:border-[#38383a] text-gray-900 dark:text-[#ffffff] placeholder-gray-400 dark:placeholder-[#636366] focus:border-blue-500 dark:focus:border-[#0a84ff] focus:ring-2 focus:ring-blue-200 dark:focus:ring-[#0a84ff]/20 outline-none transition-all"
                   />
                 </div>
                 <div>
@@ -729,7 +730,7 @@ const SettingsPage: React.FC = () => {
                     placeholder="Enter new password"
                     required
                     minLength={8}
-                    className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#1c1c1e] border border-gray-200 dark:border-[#38383a] text-gray-900 dark:text-[#ffffff] placeholder-gray-400 dark:placeholder-[#636366] focus:border-blue-500 dark:focus:border-[#0a84ff] focus:ring-2 focus:ring-blue-200 dark:focus:ring-[#0a84ff]/20 outline-none transition-all"
+                    className="pl-12 w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#1c1c1e] border border-gray-200 dark:border-[#38383a] text-gray-900 dark:text-[#ffffff] placeholder-gray-400 dark:placeholder-[#636366] focus:border-blue-500 dark:focus:border-[#0a84ff] focus:ring-2 focus:ring-blue-200 dark:focus:ring-[#0a84ff]/20 outline-none transition-all"
                   />
                 </div>
                 <div>
@@ -743,7 +744,7 @@ const SettingsPage: React.FC = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm new password"
                     required
-                    className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#1c1c1e] border border-gray-200 dark:border-[#38383a] text-gray-900 dark:text-[#ffffff] placeholder-gray-400 dark:placeholder-[#636366] focus:border-blue-500 dark:focus:border-[#0a84ff] focus:ring-2 focus:ring-blue-200 dark:focus:ring-[#0a84ff]/20 outline-none transition-all"
+                    className="pl-12 w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#1c1c1e] border border-gray-200 dark:border-[#38383a] text-gray-900 dark:text-[#ffffff] placeholder-gray-400 dark:placeholder-[#636366] focus:border-blue-500 dark:focus:border-[#0a84ff] focus:ring-2 focus:ring-blue-200 dark:focus:ring-[#0a84ff]/20 outline-none transition-all"
                   />
                 </div>
                 <button
