@@ -1,8 +1,8 @@
-# Journey Planner 🗺️ - MVP Faza 1
+# Journey Planner 🗺️
 
-Uproszczona aplikacja webowa do planowania podróży stworzona przez 3-osobowy zespół studencki.
+A modern web application for planning trips with interactive map integration, accommodation management, transportation tracking, and cost estimation. Built with a PostgreSQL database backend designed to run on Raspberry Pi.
 
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Journey Planner](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 
@@ -10,256 +10,387 @@ Uproszczona aplikacja webowa do planowania podróży stworzona przez 3-osobowy z
 
 ## 🚀 Quick Start
 
-### Krok 1: Sklonuj Repozytorium
+**New to this project?** ➡️ **[START HERE - START_HERE.md](START_HERE.md)**
 
-```bash
-git clone https://github.com/AdasRakieta/collage-proj.git
-cd collage-proj
-```
+**Need Nginx config?** ➡️ **[NGINX_QUICK_COPY.md](NGINX_QUICK_COPY.md)** (5 minutes)
 
-### Krok 2: Uruchom Backend
-
-```bash
-cd server
-npm install
-npm run dev
-```
-
-Backend: **http://localhost:5001**
-
-### Krok 3: Uruchom Frontend
-
-```bash
-cd client
-npm install
-npm run dev
-```
-
-Frontend: **http://localhost:5173**
-
-### Krok 4: Zaloguj się
-
-- **Username:** `admin`
-- **Password:** `admin123`
+**Have 404 error?** ➡️ **[DEBUG_404.md](DEBUG_404.md)** (8 common causes + fixes)
 
 ---
 
-## ✨ Funkcjonalności MVP
+## ✨ Features
 
-✅ **Zarządzanie Podróżami**
-- Tworzenie, edycja, usuwanie podróży
-- Lista wszystkich podróży
+- 🗺️ **Interactive Map**: Click on the map to add stops to your journey using OpenStreetMap
+- 🏨 **Accommodation Management**: Save hotels with links (e.g., from Booking.com) and prices
+- ✈️ **Transportation Tracking**: Support for flights, trains, buses, cars, and other transport types
+- 🎯 **Attraction Planning**: Plan and budget for activities at each destination
+- 💰 **Cost Estimation**: Automatic calculation of total trip costs including accommodations, transport, and attractions
+- 📱 **iOS-Inspired UI**: Modern, clean interface inspired by iPhone system apps and Apple Maps
+- 🔄 **Real-time Updates**: Instant synchronization between frontend and backend
 
-✅ **Przystanki (Miasta)**
-- Dodawanie miast do podróży
-- Informacje o noclegach (nazwa, link, cena)
-- Geolokalizacja
-
-✅ **Transport**
-- Różne typy: samolot, pociąg, autobus, samochód
-- Ceny i linki do rezerwacji
-
-✅ **Atrakcje**
-- Dodawanie do przystanków
-- Szacowany koszt i czas
-- Priorytety
-
-✅ **Kalkulacja Kosztów**
-- Automatyczne sumowanie
-- Podział na kategorie
-
-✅ **Mapa Interaktywna**
-- Wyświetlanie przystanków
-- Markery i trasy
-
----
-
-## 🏗️ Stack Technologiczny
+## 🏗️ Technology Stack
 
 ### Frontend
-- React 18 + TypeScript
-- Vite
-- Tailwind CSS
-- Leaflet (mapy)
+- **React 18** with TypeScript
+- **Vite** for fast development and building
+- **Tailwind CSS** for iOS-inspired styling
+- **Leaflet** with React-Leaflet for interactive maps
+- **Lucide React** for icons
 
 ### Backend
-- Node.js + Express
-- TypeScript
-- PostgreSQL (opcjonalne - JSON fallback)
+- **Node.js** with Express
+- **TypeScript** for type safety
+- **Sequelize ORM** for database management
+- **PostgreSQL** as the database
+- **CORS** enabled for cross-origin requests
 
----
+## 📋 Prerequisites
 
-## 📚 Dokumentacja
+- Node.js 18+ and npm
+- PostgreSQL 12+
+- Raspberry Pi (recommended for deployment) or any Linux/macOS/Windows system
 
-| Plik | Opis |
-|------|------|
-| [URUCHOMIENIE.md](URUCHOMIENIE.md) | 🚀 Szczegółowe instrukcje uruchomienia |
-| [DANE_LOGOWANIA.md](DANE_LOGOWANIA.md) | 🔐 Dane dostępowe i zarządzanie użytkownikami |
-| [README_MVP.md](README_MVP.md) | 📖 Pełna dokumentacja MVP |
-| [UPROSZCZENIE_PODSUMOWANIE.md](UPROSZCZENIE_PODSUMOWANIE.md) | 📝 Historia zmian i uproszczenia |
-| [scripts/team_gaussian.html](scripts/team_gaussian.html) | 📊 Wykres Gaussa zespołu |
+## 🚀 Installation
 
----
-
-## 🐳 Docker
-
-### Tryb Developerski
-
-Najszybszy sposób - uruchom lokalnie bez Dockera (patrz Quick Start).
-
-### Tryb Produkcyjny
-
+### 1. Clone the repository
 ```bash
-# Konfiguracja
-cp stack.env.example stack.env
-# Edytuj stack.env (ustaw JWT_SECRET, DB, etc.)
-
-# Uruchomienie
-docker-compose up -d
-
-# Sprawdź status
-docker-compose ps
-
-# Logi
-docker-compose logs -f
+git clone https://github.com/AdasRakieta/journey-planner.git
+cd journey-planner
 ```
 
-**Dostęp:**
-- Frontend: http://localhost:5173
-- Backend: http://localhost:5001/api
-
----
-
-## 🗄️ Baza Danych (Opcjonalna)
-
-### JSON Fallback (Domyślnie)
-
-Aplikacja automatycznie używa JSON, jeśli PostgreSQL nie jest dostępny.
-- ✅ Brak konfiguracji
-- ✅ Szybki start
-- ⚠️ Dane nie są persystentne
-
-### PostgreSQL (Produkcja)
-
+### 2. Install dependencies
 ```bash
-# Utwórz bazę
-createdb journey_planner
-
-# Inicjalizuj tabele
-psql -d journey_planner -f database/init_simple.sql
+# Install all dependencies (root, server, and client)
+npm run install:all
 ```
 
-Skonfiguruj `.env`:
+### 3. Set up PostgreSQL database
+```bash
+sudo -u postgres psql
+```
 
+In PostgreSQL shell:
+```sql
+CREATE DATABASE journey_planner;
+CREATE USER journey_user WITH PASSWORD 'your_secure_password';
+GRANT ALL PRIVILEGES ON DATABASE journey_planner TO journey_user;
+\q
+```
+
+### 4. Configure environment variables
+
+#### Backend configuration
+```bash
+cp server/.env.example server/.env
+```
+
+Edit `server/.env`:
 ```env
+PORT=5001
+NODE_ENV=development
+
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=journey_planner
 DB_USER=journey_user
-DB_PASSWORD=StrongPassword123!
-
-JWT_SECRET=wygeneruj-64-znaki-node-crypto
-JWT_REFRESH_SECRET=inny-64-znaki-sekret
+DB_PASSWORD=your_secure_password
 ```
 
----
-
-## 🎯 Struktura Projektu
-
-```
-collage-proj/
-├── client/               # Frontend (React)
-│   ├── src/
-│   │   ├── components/   # Komponenty UI
-│   │   ├── pages/        # Strony (Itinerary)
-│   │   ├── services/     # API client
-│   │   └── types/        # TypeScript types
-│   └── package.json
-│
-├── server/               # Backend (Node.js)
-│   ├── src/
-│   │   ├── controllers/  # Logika biznesowa
-│   │   ├── routes/       # API endpoints
-│   │   ├── config/       # Konfiguracja DB
-│   │   └── services/     # Serwisy (currency)
-│   ├── data/example/     # JSON fallback
-│   └── package.json
-│
-├── database/
-│   └── init_simple.sql   # Schema bazy danych
-│
-├── scripts/
-│   └── team_gaussian.html # Wykres zespołu
-│
-└── Dokumentacja/         # Faza 1 dokumentacja
+#### Frontend configuration
+```bash
+cp client/.env.example client/.env
 ```
 
----
+Edit `client/.env`:
+```env
+VITE_API_URL=http://localhost:5001/api
+```
 
-## 📊 Zespół
+## 🖥️ Development
 
-Projekt realizowany przez 3-osobowy zespół:
+### Option 1: Quick Start (Recommended)
+Run both frontend and backend together:
+```bash
+npm run dev
+```
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:5001`
 
-- **Backend Developer** - API, baza danych, logika biznesowa
-- **Frontend Developer** - UI/UX, React, mapy
-- **Fullstack/Integrator** - Integracja, testy, dokumentacja
+### Option 2: Python HTTP Server (Frontend Only)
+For quick frontend testing with built application:
 
-Zobacz [wizualizację Gaussa](scripts/team_gaussian.html) rozkładu umiejętności zespołu.
+**Using Python script:**
+```bash
+# Build first
+npm run build:all
 
----
+# Serve with Python (Terminal 1)
+python scripts/serve-local.py
 
-## 🔧 API Endpoints
+# Or with custom port
+python scripts/serve-local.py --port 3000
+
+# Run backend separately (Terminal 2)
+cd server && npm run dev
+```
+
+**Using PowerShell script (Windows):**
+```powershell
+# Build first
+npm run build:all
+
+# Serve with PowerShell (Terminal 1)
+.\scripts\serve-local.ps1
+
+# Or with custom port
+.\scripts\serve-local.ps1 -Port 3000
+
+# Run backend separately (Terminal 2)
+cd server; npm run dev
+```
+
+**Direct Python command:**
+```bash
+cd client/dist
+python -m http.server 8000
+```
+Then open `http://localhost:8000`
+
+> **Note:** When using Python server, backend must run separately on port 5001
+
+### Option 3: Separate Terminals
+Run frontend and backend in separate terminals for better control:
+
+**Backend only:**
+```bash
+npm run server:dev
+```
+The API will be available at `http://localhost:5001`
+
+**Frontend only:**
+```bash
+npm run client:dev
+```
+The UI will be available at `http://localhost:5173`
+
+### 🧪 Testing & Troubleshooting
+
+**Check if backend is running:**
+```bash
+curl http://localhost:5001/api/health
+```
+
+**Check database connection:**
+```bash
+docker ps | grep journey-planner-db
+docker logs journey-planner-db
+```
+
+**Access PostgreSQL:**
+```bash
+docker exec -it journey-planner-db psql -U journey_user -d journey_planner
+```
+
+**Full setup guide:**
+```bash
+# Python
+python scripts/serve-local.py --full-guide
+
+# PowerShell
+.\scripts\serve-local.ps1 -FullGuide
+```
+
+## 🏭 Production Build
+
+### Build both applications:
+```bash
+npm run build:all
+```
+
+### Or build separately:
+
+**Backend:**
+```bash
+npm run server:build
+```
+
+**Frontend:**
+```bash
+npm run client:build
+```
+
+## 🍓 Deployment on Raspberry Pi
+
+Journey Planner can be deployed alongside existing applications (like SmartHome) using shared Nginx.
+
+### 📚 Deployment Options:
+
+1. **🎯 Nginx Multi-App Stack** ⭐ **RECOMMENDED** ⭐
+   - See [QUICK_NGINX_DEPLOY.md](./QUICK_NGINX_DEPLOY.md) - 3 steps to deploy (5 minutes)
+   - See [NGINX_DEPLOYMENT.md](./NGINX_DEPLOYMENT.md) - Complete documentation
+   - **One Nginx** for Journey Planner + SmartHome + other apps
+   - **Simple, stable, proven technology** - no Traefik complications
+
+2. **Legacy Options** (deprecated - use Nginx instead)
+   - [PORTAINER_DEPLOY.md](./PORTAINER_DEPLOY.md) - Traefik-based (complex)
+   - [NGINX_CONFIG_FOR_SMARTHOME.md](./NGINX_CONFIG_FOR_SMARTHOME.md) - Old configs
+
+### Quick Manual Deployment:
+
+1. **Build the applications:**
+```bash
+npm run build:all
+```
+
+2. **Install PM2 for process management:**
+```bash
+sudo npm install -g pm2
+cd server
+pm2 start dist/index.js --name journey-planner-api
+pm2 save
+pm2 startup
+```
+
+3. **Configure nginx** (see documentation files above)
+
+4. **Access your application:**
+   - Local: `http://raspberry-pi-ip:5001`
+   - Via nginx: `http://your-domain/journey/`
+
+## 📡 API Endpoints
 
 ### Journeys
-- `GET /api/journeys` - Lista podróży
-- `GET /api/journeys/:id` - Szczegóły
-- `POST /api/journeys` - Nowa podróż
-- `PUT /api/journeys/:id` - Edytuj
-- `DELETE /api/journeys/:id` - Usuń
-- `GET /api/journeys/:id/total-cost` - Koszty
+- `GET /api/journeys` - Get all journeys
+- `GET /api/journeys/:id` - Get a specific journey
+- `POST /api/journeys` - Create a new journey
+- `PUT /api/journeys/:id` - Update a journey
+- `DELETE /api/journeys/:id` - Delete a journey
+- `POST /api/journeys/:id/calculate-cost` - Calculate total cost
 
-### Stops, Transports, Attractions
-Analogiczne endpointy dla przystanków, transportu i atrakcji.
+### Health Check
+- `GET /api/health` - Check API status
 
-Pełna dokumentacja: [README_MVP.md](README_MVP.md)
+## 🎨 Design Philosophy
+
+The UI is inspired by iOS design principles:
+- Clean, minimalist interface
+- Smooth transitions and interactions
+- iOS color palette (SF symbols-style)
+- Card-based layouts with proper shadows
+- Rounded corners (iOS-style 10px/20px radius)
+- SF Pro-inspired typography
+
+## 🗂️ Project Structure
+
+```
+journey-planner/
+├── client/                 # Frontend React application
+│   ├── src/
+│   │   ├── components/    # React components
+│   │   ├── services/      # API service layer
+│   │   ├── types/         # TypeScript type definitions
+│   │   ├── App.tsx        # Main application component
+│   │   └── index.css      # Global styles with Tailwind
+│   ├── public/            # Static assets
+│   └── package.json
+├── server/                # Backend Express application
+│   ├── src/
+│   │   ├── config/       # Database configuration
+│   │   ├── controllers/  # Request handlers
+│   │   ├── models/       # Sequelize models
+│   │   ├── routes/       # API routes
+│   │   └── index.ts      # Server entry point
+│   └── package.json
+├── NGINX_SETUP.md        # Nginx configuration guide
+└── package.json          # Root package.json with scripts
+```
+
+## 🔧 Configuration
+
+### Port Configuration
+- **Backend API**: Port 5001 (configurable via `.env`)
+- **Frontend Dev Server**: Port 5173 (Vite default)
+- **PostgreSQL**: Port 5432 (default)
+
+**Note:** Port 5001 is used instead of 5000 to avoid conflicts with other applications (e.g., SmartHome on port 5000).
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📝 License
+
+This project is licensed under the ISC License - see the LICENSE file for details.
+
+## 🐛 Troubleshooting
+
+### Database connection issues
+```bash
+# Check PostgreSQL status
+sudo systemctl status postgresql
+
+# View logs
+sudo journalctl -u postgresql
+```
+
+### Port already in use
+```bash
+# Check what's using port 5001
+sudo lsof -i :5001
+
+# Kill the process if needed
+kill -9 <PID>
+```
+
+### Frontend can't connect to backend
+- Verify `VITE_API_URL` in client `.env` file
+- Check that backend is running on the correct port
+- Ensure CORS is properly configured in backend
+
+## 📞 Support
+
+For issues and questions, please open an issue on GitHub.
+
+## 📚 Documentation
+
+### Quick Start Guides
+- **[QUICK_START.md](QUICK_START.md)** - ✅ 5-step checklist for GitHub Actions setup
+- **[QUICK_NGINX_DEPLOY.md](QUICK_NGINX_DEPLOY.md)** - 🚀 **NEW!** 3 steps to Nginx deployment (5 minutes)
+- **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)** - ✅ **NEW!** Complete deployment checklist
+- **[NGINX_QUICK_COPY.md](NGINX_QUICK_COPY.md)** - 📋 Copy-paste Nginx configuration
+
+### Deployment & Configuration (Nginx - Recommended!)
+- **[NGINX_DEPLOYMENT.md](NGINX_DEPLOYMENT.md)** - 🎯 **NEW!** Complete Nginx deployment guide ⭐
+- **[NGINX_ARCHITECTURE.md](NGINX_ARCHITECTURE.md)** - 🏗️ **NEW!** Architecture diagrams & flow
+- **[MIGRATION_TRAEFIK_TO_NGINX.md](MIGRATION_TRAEFIK_TO_NGINX.md)** - 🔄 **NEW!** Migrate from Traefik to Nginx
+- **[NGINX_SETUP.md](NGINX_SETUP.md)** - 📝 Detailed Nginx reverse proxy configuration
+- **[NGINX_INTEGRATION.md](NGINX_INTEGRATION.md)** - 🔗 Complete Nginx setup for SmartHome + Journey Planner
+
+### Legacy Deployment (Traefik - Deprecated)
+- **[NGINX_STANDALONE_SETUP.md](NGINX_STANDALONE_SETUP.md)** - 🏗️ Nginx jako osobny stack
+- **[PORTAINER_LOCAL_BUILD.md](PORTAINER_LOCAL_BUILD.md)** - 🔧 Build lokalny w Portainerze
+- **[PORTAINER_ENV.md](PORTAINER_ENV.md)** - 📦 Environment variables management
+- **[GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md)** - 🚀 Automated Docker builds
+
+### Configuration & Troubleshooting
+- **[FRONTEND_BUILD_CRITICAL.md](FRONTEND_BUILD_CRITICAL.md)** - 🚨 VITE_API_URL i compile-time config
+- **[URL_CONFIGURATION_GUIDE.md](URL_CONFIGURATION_GUIDE.md)** - 🌐 Kiedy używać `/journey/` w URL
+- **[DEBUG_404.md](DEBUG_404.md)** - 🔍 Comprehensive guide for fixing 404 errors
+- **[QUICKSTART.md](QUICKSTART.md)** - 🏃 Fast local development setup
+- **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - 📖 Project overview and architecture
+
+### Contributing
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - 🤝 How to contribute to the project
+- **[USER_GUIDE.md](USER_GUIDE.md)** - 📱 End-user documentation
+
+### Helper Scripts
+- `scripts/verify-deployment.sh` - **NEW!** Verify Nginx deployment (10 checks)
+- `validate-env.sh` - Validate environment variables
+- `find-postgres-ip.sh` - Find existing PostgreSQL container
+- `build-on-pi.sh` - Build ARM64 images on Raspberry Pi
+- `deploy-on-pi.sh` - Automated deployment script
+- `switch-env-mode.sh` - Switch between direct/Nginx modes
 
 ---
 
-## ⚠️ Ważne
-
-- **Zmień hasło** `admin123` przed wdrożeniem
-- **Wygeneruj JWT secrets** dla produkcji
-- **JSON fallback** traci dane po restarcie
-- **PostgreSQL** zalecany dla persystencji
-
----
-
-## 📈 Status Projektu
-
-✅ **Faza 1: ZAKOŃCZONA** - Analiza, projektowanie, MVP  
-📅 **Faza 2:** Rozwój backend  
-📅 **Faza 3:** Zaawansowany frontend  
-📅 **Faza 4:** Testy i integracja  
-📅 **Faza 5:** Autentykacja i bezpieczeństwo  
-📅 **Faza 6:** Deployment i finalizacja
-
----
-
-## 📝 Licencja
-
-MIT License - Projekt edukacyjny
-
----
-
-## 🆘 Pomoc
-
-Problemy? Zobacz:
-- [URUCHOMIENIE.md](URUCHOMIENIE.md) - Troubleshooting
-- [DANE_LOGOWANIA.md](DANE_LOGOWANIA.md) - Reset hasła
-- Issues: https://github.com/AdasRakieta/collage-proj/issues
-
----
-
-**Wersja:** MVP Faza 1 (bez Nginx)  
-**Data:** 16 stycznia 2026  
-**Zespół:** 3-osobowy zespół studencki
+Made with ❤️ for travel enthusiasts

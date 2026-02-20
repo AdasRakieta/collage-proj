@@ -49,7 +49,6 @@ export interface Attraction {
   isPaid?: boolean;
   address?: string;      // Full address (legacy - for display/concatenated)
   addressStreet?: string;    // Street name and number
-  addressHouseNumber?: string; // House/building number (kept separate in some forms)
   addressCity?: string;      // City name
   addressPostalCode?: string; // Postal/ZIP code
   addressCountry?: string;    // Country name

@@ -16,8 +16,6 @@ export interface AttractionTagInfo {
   value: AttractionTag;
   label: string;
   emoji: string;
-  // Hex color used in some UI places (e.g., inline badge styles)
-  color: string;
   bgLight: string; // bg color for badge
   textColor: string; // text color
   borderColor: string; // border color
@@ -28,7 +26,6 @@ export const ATTRACTION_TAGS: Record<AttractionTag, AttractionTagInfo> = {
     value: 'beauty',
     label: 'Beauty & Spa',
     emoji: '🧖🏻‍♀️',
-    color: '#db2777',
     bgLight: 'bg-pink-100 dark:bg-pink-900/20',
     textColor: 'text-pink-800 dark:text-pink-200',
     borderColor: 'border-pink-200 dark:border-pink-400/30',
@@ -37,7 +34,6 @@ export const ATTRACTION_TAGS: Record<AttractionTag, AttractionTagInfo> = {
     value: 'cafe',
     label: 'Café',
     emoji: '☕️',
-    color: '#b45309',
     bgLight: 'bg-amber-100 dark:bg-amber-900/20',
     textColor: 'text-amber-800 dark:text-amber-200',
     borderColor: 'border-amber-200 dark:border-amber-400/30',
@@ -46,7 +42,6 @@ export const ATTRACTION_TAGS: Record<AttractionTag, AttractionTagInfo> = {
     value: 'must_see',
     label: 'Must See',
     emoji: '📷',
-    color: '#7c3aed',
     bgLight: 'bg-purple-100 dark:bg-purple-900/20',
     textColor: 'text-purple-800 dark:text-purple-200',
     borderColor: 'border-purple-200 dark:border-purple-400/30',
@@ -55,7 +50,6 @@ export const ATTRACTION_TAGS: Record<AttractionTag, AttractionTagInfo> = {
     value: 'accommodation',
     label: 'Accommodation',
     emoji: '💤',
-    color: '#2563eb',
     bgLight: 'bg-blue-100 dark:bg-blue-900/20',
     textColor: 'text-blue-800 dark:text-blue-200',
     borderColor: 'border-blue-200 dark:border-blue-400/30',
@@ -64,7 +58,6 @@ export const ATTRACTION_TAGS: Record<AttractionTag, AttractionTagInfo> = {
     value: 'nature',
     label: 'Nature',
     emoji: '🌱',
-    color: '#16a34a',
     bgLight: 'bg-green-100 dark:bg-green-900/20',
     textColor: 'text-green-800 dark:text-green-200',
     borderColor: 'border-green-200 dark:border-green-400/30',
@@ -73,7 +66,6 @@ export const ATTRACTION_TAGS: Record<AttractionTag, AttractionTagInfo> = {
     value: 'airport',
     label: 'Airport',
     emoji: '✈️',
-    color: '#0284c7',
     bgLight: 'bg-sky-100 dark:bg-sky-900/20',
     textColor: 'text-sky-800 dark:text-sky-200',
     borderColor: 'border-sky-200 dark:border-sky-400/30',
@@ -82,7 +74,6 @@ export const ATTRACTION_TAGS: Record<AttractionTag, AttractionTagInfo> = {
     value: 'food',
     label: 'Food & Dining',
     emoji: '🍽️',
-    color: '#ea580c',
     bgLight: 'bg-orange-100 dark:bg-orange-900/20',
     textColor: 'text-orange-800 dark:text-orange-200',
     borderColor: 'border-orange-200 dark:border-orange-400/30',
@@ -91,7 +82,6 @@ export const ATTRACTION_TAGS: Record<AttractionTag, AttractionTagInfo> = {
     value: 'attraction',
     label: 'Attraction',
     emoji: '💸',
-    color: '#4f46e5',
     bgLight: 'bg-indigo-100 dark:bg-indigo-900/20',
     textColor: 'text-indigo-800 dark:text-indigo-200',
     borderColor: 'border-indigo-200 dark:border-indigo-400/30',
@@ -100,7 +90,6 @@ export const ATTRACTION_TAGS: Record<AttractionTag, AttractionTagInfo> = {
     value: 'train_station',
     label: 'Train Station',
     emoji: '🚄',
-    color: '#374151',
     bgLight: 'bg-gray-100 dark:bg-gray-900/20',
     textColor: 'text-gray-800 dark:text-gray-200',
     borderColor: 'border-gray-200 dark:border-gray-400/30',

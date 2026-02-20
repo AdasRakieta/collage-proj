@@ -1,0 +1,47 @@
+version: '3.8'
+
+networks:
+  web:
+    external: true
+
+volumes:
+  static_uploads:
+    external: true
+    name: smarthome-stack_static_uploads
+
+services:
+  smarthome_app:
+    image: ghcr.io/adasrakieta/site_proj/smarthome_app:${IMAGE_TAG:-latest}
+    container_name: smarthome_app
+    environment:
+      - SERVER_HOST=${SERVER_HOST:-0.0.0.0}
+      - SERVER_PORT=${SERVER_PORT:-5000}
+      - IMAGE_TAG=${IMAGE_TAG:-latest}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - SMTP_SERVER=${SMTP_SERVER}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - SECRET_KEY=${SECRET_KEY}
+      - URL_PREFIX=
+      - API_PREFIX=
+      - STATIC_PREFIX=
+      - SOCKET_PREFIX=
+      - REDIS_HOST=${REDIS_HOST:-smarthome_redis_standalone}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - ASSET_VERSION=${ASSET_VERSION:-}
+    volumes:
+      - static_uploads:/srv/static/profile_pictures
+    networks:
+      - web
+    restart: unless-stopped
+    external_links:
+      - smarthome_redis_standalone:redis
+    ports:
+      - "5000:5000"

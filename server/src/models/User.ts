@@ -3,7 +3,6 @@ import sequelize from '../config/database';
 
 export interface UserAttributes {
   id?: number;
-  userId?: number; // Alias for id, used in controllers
   username: string;
   email: string;
   passwordHash: string;
@@ -21,7 +20,6 @@ interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'role' 
 // User Model
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   public id!: number;
-  public userId?: number; // Alias for id
   public username!: string;
   public email!: string;
   public passwordHash!: string;
@@ -32,12 +30,6 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
   public resetTokenExpires?: Date;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
-
-  // Ensure userId is always set to id
-  constructor(values?: any, options?: any) {
-    super(values, options);
-    this.userId = this.id;
-  }
 }
 
 User.init(

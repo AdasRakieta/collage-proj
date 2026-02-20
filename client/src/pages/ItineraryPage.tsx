@@ -225,7 +225,7 @@ const AttractionCard: React.FC<{
   isDropTarget?: boolean;
   onEdit?: (attraction: Attraction) => void;
   onDelete?: (id: number) => void;
-}> = ({ attraction, stop: _stop, onPriorityChange, onPlannedDateChange: _onPlannedDateChange, onDragStart, onDragEnd, isDragging, isDropTarget, onEdit, onDelete }) => {
+}> = ({ attraction, stop, onPriorityChange, onPlannedDateChange, onDragStart, onDragEnd, isDragging, isDropTarget, onEdit, onDelete }) => {
   const [showPriorityMenu, setShowPriorityMenu] = useState(false);
   
   const currentPriority = attraction.priority || 'should';
@@ -814,8 +814,8 @@ const ItineraryPage: React.FC = () => {
     addressCity: '',
     addressPostalCode: '',
     addressCountry: '',
-    latitude: undefined,
-    longitude: undefined
+    latitude: null,
+    longitude: null
   });
 
   // Load journey data
@@ -962,7 +962,7 @@ const ItineraryPage: React.FC = () => {
 
     try {
       setLoading(true);
-      await attractionService.createAttraction(selectedStopForAttraction, {
+      const created = await attractionService.createAttraction(selectedStopForAttraction, {
         ...newAttraction,
         currency: newAttraction.currency || journey?.currency || 'PLN'
       });
@@ -981,8 +981,8 @@ const ItineraryPage: React.FC = () => {
         addressCity: '',
         addressPostalCode: '',
         addressCountry: '',
-        latitude: undefined,
-        longitude: undefined
+        latitude: null,
+        longitude: null
       });
       setShowAddAttractionModal(false);
       setSelectedStopForAttraction(null);
@@ -1058,21 +1058,18 @@ const ItineraryPage: React.FC = () => {
       return;
     }
     
+    const fullAddress = parts.join(', ');
+    
     try {
       setGeocodingEditAttraction(true);
-      const coords = await geocodeAddress(
-        editingAttraction.addressStreet,
-        editingAttraction.addressCity,
-        editingAttraction.addressPostalCode,
-        editingAttraction.addressCountry
-      );
+      const coords = await geocodeAddress(fullAddress);
       
       if (coords) {
         setEditingAttraction({
           ...editingAttraction,
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-          address: coords.displayName
+          latitude: coords.lat,
+          longitude: coords.lng,
+          address: coords.display_name || fullAddress
         });
         toast.success('Coordinates found!');
       } else {
@@ -1100,21 +1097,18 @@ const ItineraryPage: React.FC = () => {
       return;
     }
     
+    const fullAddress = parts.join(', ');
+    
     try {
       setGeocodingNewAttraction(true);
-      const coords = await geocodeAddress(
-        newAttraction.addressStreet,
-        newAttraction.addressCity,
-        newAttraction.addressPostalCode,
-        newAttraction.addressCountry
-      );
+      const coords = await geocodeAddress(fullAddress);
       
       if (coords) {
         setNewAttraction({
           ...newAttraction,
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-          address: coords.displayName
+          latitude: coords.lat,
+          longitude: coords.lng,
+          address: coords.display_name || fullAddress
         });
         toast.success('Coordinates found!');
       } else {
@@ -1511,14 +1505,14 @@ const ItineraryPage: React.FC = () => {
                       estimatedCost: 0,
                       duration: '',
                       currency: journey?.currency || 'PLN',
-                      latitude: undefined,
-                      longitude: undefined,
+                      latitude: null,
+                      longitude: null,
                       addressStreet: '',
                       addressCity: '',
                       addressPostalCode: '',
                       addressCountry: '',
                       priority: 'should',
-                      tag: undefined
+                      tag: null
                     });
                     setShowAddAttractionModal(true);
                   }}
@@ -1792,7 +1786,7 @@ const ItineraryPage: React.FC = () => {
                 </label>
                 <select
                   value={newAttraction.tag || ''}
-                  onChange={(e) => setNewAttraction({ ...newAttraction, tag: (e.target.value || undefined) as any })}
+                  onChange={(e) => setNewAttraction({ ...newAttraction, tag: e.target.value || null })}
                   className="gh-select"
                 >
                   <option value="">No category</option>
@@ -2033,7 +2027,8 @@ const ItineraryPage: React.FC = () => {
                   </label>
                   <input
                     type="number"
-                    value={newAttraction.latitude ?? ''}
+                    value={newAttraction.latitude || ''}
+                    onChange={(e) => setNewAttraction({ ...newAttraction, latitude: parseFloat(e.target.value) || null })}
                     className="gh-input bg-gray-50 dark:bg-[#2c2c2e]"
                     step="0.000001"
                     placeholder="Auto-filled"
@@ -2046,7 +2041,8 @@ const ItineraryPage: React.FC = () => {
                   </label>
                   <input
                     type="number"
-                    value={newAttraction.longitude ?? ''}
+                    value={newAttraction.longitude || ''}
+                    onChange={(e) => setNewAttraction({ ...newAttraction, longitude: parseFloat(e.target.value) || null })}
                     className="gh-input bg-gray-50 dark:bg-[#2c2c2e]"
                     step="0.000001"
                     placeholder="Auto-filled"
@@ -2119,7 +2115,7 @@ const ItineraryPage: React.FC = () => {
                 </label>
                 <select
                   value={editingAttraction.tag || ''}
-                  onChange={(e) => setEditingAttraction({ ...editingAttraction, tag: (e.target.value || undefined) as any })}
+                  onChange={(e) => setEditingAttraction({ ...editingAttraction, tag: e.target.value || null })}
                   className="gh-select"
                 >
                   <option value="">No category</option>
@@ -2365,7 +2361,8 @@ const ItineraryPage: React.FC = () => {
                   </label>
                   <input
                     type="number"
-                    value={editingAttraction.latitude ?? ''}
+                    value={editingAttraction.latitude || ''}
+                    onChange={(e) => setEditingAttraction({ ...editingAttraction, latitude: parseFloat(e.target.value) || null })}
                     className="gh-input bg-gray-50 dark:bg-[#2c2c2e]"
                     step="0.000001"
                     placeholder="Auto-filled"
@@ -2378,7 +2375,8 @@ const ItineraryPage: React.FC = () => {
                   </label>
                   <input
                     type="number"
-                    value={editingAttraction.longitude ?? ''}
+                    value={editingAttraction.longitude || ''}
+                    onChange={(e) => setEditingAttraction({ ...editingAttraction, longitude: parseFloat(e.target.value) || null })}
                     className="gh-input bg-gray-50 dark:bg-[#2c2c2e]"
                     step="0.000001"
                     placeholder="Auto-filled"

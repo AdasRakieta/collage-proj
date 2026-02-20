@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+﻿import { Request, Response } from 'express';
 import { query, getClient, DB_AVAILABLE } from '../config/db';
 import jsonStore from '../config/jsonStore';
 import { computeAndPersistTotal } from '../services/journeyService';
@@ -46,7 +46,7 @@ const toCamelCase = (obj: any): any => {
 export const getAllJourneys = async (req: Request, res: Response) => {
   try {
     // Get user ID from authenticated request
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -170,7 +170,7 @@ export const getAllJourneys = async (req: Request, res: Response) => {
 // Export journeys as JSON - single journey (id) or all owned by user
 export const exportJourneys = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
     const idParam = req.query.id as string | undefined;
@@ -233,7 +233,7 @@ export const exportJourneys = async (req: Request, res: Response) => {
 // Payload: { journeys: Journey[], options?: { importJourneys?: boolean; importStops?: boolean; importTransports?: boolean } }
 export const importJourneys = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
     const { journeys, options } = req.body;
@@ -404,7 +404,7 @@ export const getJourneyById = async (req: Request, res: Response) => {
     }
 
     // Database mode: fetch journey with all nested data
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -456,7 +456,7 @@ export const getJourneyById = async (req: Request, res: Response) => {
 export const createJourney = async (req: Request, res: Response) => {
   try {
     const { title, description, startDate, endDate, currency } = req.body;
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
     
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
@@ -480,6 +480,8 @@ export const createJourney = async (req: Request, res: Response) => {
       }
 
       const journey = toCamelCase(await jsonStore.getById('journeys', newJourney.id));
+      const io = req.app.get('io');
+      io.emit('journey:created', journey);
       return res.status(201).json(journey);
     }
 
@@ -500,6 +502,8 @@ export const createJourney = async (req: Request, res: Response) => {
     }
 
     const journey = toCamelCase(newJourney);
+    const io = req.app.get('io');
+    io.emit('journey:created', journey);
     return res.status(201).json(journey);
   } catch (error) {
     console.error('Error:', error);
@@ -511,7 +515,7 @@ export const updateJourney = async (req: Request, res: Response) => {
   try {
     const { title, description, startDate, endDate, currency, checklist } = req.body;
     const id = parseInt(req.params.id);
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
@@ -529,6 +533,8 @@ export const updateJourney = async (req: Request, res: Response) => {
         console.warn('Failed to compute total on update (JSON store):', e);
       }
       const journey = toCamelCase(await jsonStore.getById('journeys', id));
+      const io = req.app.get('io');
+      io.emit('journey:updated', journey);
       return res.json(journey);
     }
 
@@ -569,6 +575,8 @@ export const updateJourney = async (req: Request, res: Response) => {
     // Fetch fresh row with updated total
     const refreshed = await query('SELECT * FROM journeys WHERE id = $1', [id]);
     const journey = toCamelCase(refreshed.rows[0]);
+    const io = req.app.get('io');
+    io.emit('journey:updated', journey);
     return res.json(journey);
   } catch (error) {
     console.error('Error updating journey:', error);
@@ -582,9 +590,13 @@ export const deleteJourney = async (req: Request, res: Response) => {
     if (!DB_AVAILABLE) {
       const ok = await jsonStore.deleteById('journeys', journeyId);
       if (!ok) return res.status(404).json({ message: 'Not found' });
+      const io = req.app.get('io');
+      io.emit('journey:deleted', { id: journeyId });
       return res.json({ message: 'Deleted successfully' });
     }
     await query('DELETE FROM journeys WHERE id = $1', [journeyId]);
+    const io = req.app.get('io');
+    io.emit('journey:deleted', { id: journeyId });
     res.json({ message: 'Deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Failed to delete journey' });
@@ -738,7 +750,7 @@ export const shareJourney = async (req: Request, res: Response) => {
   try {
     const journeyId = parseInt(req.params.id);
     const { emailOrUsername, role } = req.body;
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
@@ -872,7 +884,7 @@ const canManageShares = async (userId: number, journeyId: number) => {
 export const getSharesForJourney = async (req: Request, res: Response) => {
   try {
     const journeyId = parseInt(req.params.id);
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ message: 'Unauthorized' });
     // permission: owner or 'manage' role
     if (!(await canManageShares(userId, journeyId))) {
@@ -896,7 +908,7 @@ export const updateShareRole = async (req: Request, res: Response) => {
     const journeyId = parseInt(req.params.id);
     const shareId = parseInt(req.params.shareId);
     const { role } = req.body;
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ message: 'Unauthorized' });
     if (!role || !['view', 'edit', 'manage'].includes(role)) return res.status(400).json({ message: 'Invalid role' });
     if (!(await canManageShares(userId, journeyId))) return res.status(403).json({ message: 'Forbidden' });
@@ -920,7 +932,7 @@ export const removeShare = async (req: Request, res: Response) => {
   try {
     const journeyId = parseInt(req.params.id);
     const shareId = parseInt(req.params.shareId);
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ message: 'Unauthorized' });
     if (!(await canManageShares(userId, journeyId))) return res.status(403).json({ message: 'Forbidden' });
     if (!DB_AVAILABLE) {
@@ -941,7 +953,7 @@ export const removeShare = async (req: Request, res: Response) => {
 // Get journeys shared with me (pending invitations)
 export const getSharedWithMe = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
@@ -985,7 +997,7 @@ export const getSharedWithMe = async (req: Request, res: Response) => {
 export const acceptInvitation = async (req: Request, res: Response) => {
   try {
     const { token, invitationId } = req.body;
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
 
     let shareRecord;
 
@@ -1040,7 +1052,7 @@ export const acceptInvitation = async (req: Request, res: Response) => {
 export const rejectInvitation = async (req: Request, res: Response) => {
   try {
     const invitationId = parseInt(req.params.id);
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });

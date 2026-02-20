@@ -1,0 +1,122 @@
+name: Build and Push Journey Planner Docker Images
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}  # Pozwala na ręczne uruchomienie z GitHub UI
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_OWNER: adasrakieta
+  REPO_NAME: journey-planner
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      # Krok 1: Checkout kodu
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Krok 2: Setup QEMU for ARM64 emulation
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      # Krok 3: Setup Docker Buildx for multi-platform builds
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Krok 4: Automatyczne logowanie do GHCR
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}  # Automatyczny token
+
+      # Krok 5: Metadata dla backend image
+      - name: Extract metadata (backend)
+        id: meta_backend
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.REPO_NAME }}/backend
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-
+          labels: |
+            org.opencontainers.image.title=Journey Planner Backend
+            org.opencontainers.image.description=Node.js + Express + TypeScript API for Journey Planner
+            org.opencontainers.image.vendor=AdasRakieta
+
+      # Krok 6: Metadata dla frontend image
+      - name: Extract metadata (frontend)
+        id: meta_frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.REPO_NAME }}/frontend
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-
+          labels: |
+            org.opencontainers.image.title=Journey Planner Frontend
+            org.opencontainers.image.description=React + Vite + TypeScript frontend for Journey Planner
+            org.opencontainers.image.vendor=AdasRakieta
+
+      # Krok 7: Build i push backend image (AMD64 + ARM64)
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./server
+          file: ./server/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta_backend.outputs.tags }}
+          labels: ${{ steps.meta_backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_ENV=production
+
+      # Krok 8: Build i push frontend image (AMD64 + ARM64)
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./client
+          file: ./client/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta_frontend.outputs.tags }}
+          labels: ${{ steps.meta_frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VITE_API_URL=https://malina.tail384b18.ts.net/journey/api
+
+      # Krok 9: Podsumowanie
+      - name: Image summary
+        run: |
+          echo "### 🎉 Docker images built successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Backend images:**" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta_backend.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Frontend images:**" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta_frontend.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Pull commands:**" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ghcr.io/${{ env.IMAGE_OWNER }}/${{ env.REPO_NAME }}/backend:latest" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ghcr.io/${{ env.IMAGE_OWNER }}/${{ env.REPO_NAME }}/frontend:latest" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

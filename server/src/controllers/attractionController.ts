@@ -101,11 +101,13 @@ export const createAttraction = async (req: Request, res: Response) => {
       });
       const attraction = toCamelCase(newAttraction);
       const io = req.app.get('io');
+      io.emit('attraction:created', attraction);
       try {
         const stop = await jsonStore.getById('stops', stopId);
         if (stop) {
           await computeAndPersistTotal(stop.journey_id);
           const journey = toCamelCase(await jsonStore.getById('journeys', stop.journey_id));
+          io.emit('journey:updated', journey);
         }
       } catch (e) {
         console.warn('Failed to recompute total after attraction create (JSON):', e);
@@ -126,12 +128,15 @@ export const createAttraction = async (req: Request, res: Response) => {
     );
     const attraction = toCamelCase(result.rows[0]);
     // Emit Socket.IO event
+    const io = req.app.get('io');
+    io.emit('attraction:created', attraction);
     try {
       const stopRes = await query('SELECT journey_id FROM stops WHERE id = $1', [stopId]);
       const journeyId = stopRes.rows[0]?.journey_id;
       if (journeyId) {
         await computeAndPersistTotal(journeyId);
         const journeyRes = await query('SELECT * FROM journeys WHERE id = $1', [journeyId]);
+        io.emit('journey:updated', toCamelCase(journeyRes.rows[0]));
       }
     } catch (e) {
       console.warn('Failed to recompute total after attraction create (DB):', e);
@@ -156,11 +161,13 @@ export const updateAttraction = async (req: Request, res: Response) => {
         if (!updated) return res.status(404).json({ message: 'Attraction not found' });
         const updatedCamel = toCamelCase(updated);
         const io = req.app.get('io');
+        io.emit('attraction:updated', updatedCamel);
         try {
           const stop = await jsonStore.getById('stops', updated.stop_id);
           if (stop) {
             await computeAndPersistTotal(stop.journey_id);
             const journey = toCamelCase(await jsonStore.getById('journeys', stop.journey_id));
+            io.emit('journey:updated', journey);
           }
         } catch (e) {
           console.warn('Failed to recompute total after attraction update (JSON, partial):', e);
@@ -178,12 +185,14 @@ export const updateAttraction = async (req: Request, res: Response) => {
       const updated = toCamelCase(paidResult.rows[0]);
       console.log(`✅ Attraction ${attractionId} updated successfully, is_paid=${updated.isPaid}`);
       const io = req.app.get('io');
+      io.emit('attraction:updated', updated);
       try {
         const stopRes = await query('SELECT journey_id FROM stops WHERE id = $1', [updated.stopId]);
         const journeyId = stopRes.rows[0]?.journey_id;
         if (journeyId) {
           await computeAndPersistTotal(journeyId);
           const journeyRes = await query('SELECT * FROM journeys WHERE id = $1', [journeyId]);
+          io.emit('journey:updated', toCamelCase(journeyRes.rows[0]));
         }
       } catch (e) {
         console.warn('Failed to recompute total after attraction update (DB, partial):', e);
@@ -227,6 +236,7 @@ export const updateAttraction = async (req: Request, res: Response) => {
       if (!updated) return res.status(404).json({ message: 'Attraction not found' });
       const attraction = toCamelCase(updated);
       const io = req.app.get('io');
+      io.emit('attraction:updated', attraction);
       return res.json(attraction);
     }
     // Auto-mark as paid if estimated cost is 0 or null
@@ -248,11 +258,14 @@ export const updateAttraction = async (req: Request, res: Response) => {
     }
     const attraction = toCamelCase(result.rows[0]);
     // Emit Socket.IO event
+    const io = req.app.get('io');
+    io.emit('attraction:updated', attraction);
     try {
       const stop = await jsonStore.getById('stops', attraction.stop_id);
       if (stop) {
         await computeAndPersistTotal(stop.journey_id);
         const journey = toCamelCase(await jsonStore.getById('journeys', stop.journey_id));
+        io.emit('journey:updated', journey);
       }
     } catch (e) {
       console.warn('Failed to recompute total after attraction update (JSON):', e);
@@ -274,11 +287,13 @@ export const deleteAttraction = async (req: Request, res: Response) => {
       const ok = await jsonStore.deleteById('attractions', attractionId);
       if (!ok) return res.status(404).json({ message: 'Attraction not found' });
       const io = req.app.get('io');
+      io.emit('attraction:deleted', { id: attractionId });
       try {
         const stop = await jsonStore.getById('stops', existing.stop_id);
         if (stop) {
           await computeAndPersistTotal(stop.journey_id);
           const journey = toCamelCase(await jsonStore.getById('journeys', stop.journey_id));
+          io.emit('journey:updated', journey);
         }
       } catch (e) {
         console.warn('Failed to recompute total after attraction delete (JSON):', e);
@@ -290,6 +305,8 @@ export const deleteAttraction = async (req: Request, res: Response) => {
     await query('DELETE FROM attractions WHERE id = $1', [attractionId]);
     
     // Emit Socket.IO event
+    const io = req.app.get('io');
+    io.emit('attraction:deleted', { id: attractionId });
     try {
       if (stopId) {
         const stopRes = await query('SELECT journey_id FROM stops WHERE id = $1', [stopId]);
@@ -297,6 +314,7 @@ export const deleteAttraction = async (req: Request, res: Response) => {
         if (journeyId) {
           await computeAndPersistTotal(journeyId);
           const journeyRes = await query('SELECT * FROM journeys WHERE id = $1', [journeyId]);
+          io.emit('journey:updated', toCamelCase(journeyRes.rows[0]));
         }
       }
     } catch (e) {
@@ -328,6 +346,7 @@ export const reorderAttractions = async (req: Request, res: Response) => {
       const attractions = (await jsonStore.findByField('attractions', 'stop_id', stopId))
         .sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0));
       const io = req.app.get('io');
+      io.emit('attractions:reordered', { stopId, attractions: toCamelCase(attractions) });
       return res.json(toCamelCase(attractions));
     }
     
@@ -345,6 +364,8 @@ export const reorderAttractions = async (req: Request, res: Response) => {
     );
     
     const attractions = toCamelCase(result.rows);
+    const io = req.app.get('io');
+    io.emit('attractions:reordered', { stopId, attractions });
     
     res.json(attractions);
   } catch (error) {
@@ -371,6 +392,7 @@ export const moveAttraction = async (req: Request, res: Response) => {
       if (!updated) return res.status(404).json({ message: 'Attraction not found' });
       const attraction = toCamelCase(updated);
       const io = req.app.get('io');
+      io.emit('attraction:moved', attraction);
       return res.json(attraction);
     }
     
@@ -384,6 +406,8 @@ export const moveAttraction = async (req: Request, res: Response) => {
     }
     
     const attraction = toCamelCase(result.rows[0]);
+    const io = req.app.get('io');
+    io.emit('attraction:moved', attraction);
     
     res.json(attraction);
   } catch (error) {
@@ -408,6 +432,7 @@ export const updateAttractionPriority = async (req: Request, res: Response) => {
       if (!updated) return res.status(404).json({ message: 'Attraction not found' });
       const attraction = toCamelCase(updated);
       const io = req.app.get('io');
+      io.emit('attraction:updated', attraction);
       return res.json(attraction);
     }
     
@@ -421,6 +446,8 @@ export const updateAttractionPriority = async (req: Request, res: Response) => {
     }
     
     const attraction = toCamelCase(result.rows[0]);
+    const io = req.app.get('io');
+    io.emit('attraction:updated', attraction);
     
     res.json(attraction);
   } catch (error) {
@@ -492,6 +519,8 @@ export const bulkUpdateAttractions = async (req: Request, res: Response) => {
       }
     }
     
+    const io = req.app.get('io');
+    io.emit('attractions:bulkUpdated', results);
     
     res.json(results);
   } catch (error) {
@@ -499,5 +528,3 @@ export const bulkUpdateAttractions = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Failed to bulk update attractions' });
   }
 };
-
-
