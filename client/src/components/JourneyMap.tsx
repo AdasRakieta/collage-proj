@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useTheme } from '../contexts/ThemeContext';
@@ -53,7 +53,8 @@ interface Attraction {
   address?: string;
   latitude?: number | null;
   longitude?: number | null;
-  tag?: string | null; // optional category matching client types
+  tag?: string | null;
+  priority?: string | null;
 }
 
 interface Stop {
@@ -90,6 +91,28 @@ function LocationMarker({ onMapClick }: { onMapClick?: (lat: number, lng: number
       }
     },
   });
+  return null;
+}
+
+// Priority → hex color map (matches PRIORITY_CONFIG in ItineraryPage)
+const PRIORITY_COLORS: Record<string, string> = {
+  must:   '#ff453a',
+  should: '#ff9f0a',
+  could:  '#0a84ff',
+  skip:   '#636366',
+};
+
+// Flies the map to new center whenever the prop changes
+function FlyToCenter({ center, zoom }: { center: [number, number]; zoom: number }) {
+  const map = useMap();
+  const prevRef = React.useRef<string>('');
+  React.useEffect(() => {
+    const key = `${center[0]},${center[1]}`;
+    if (key !== prevRef.current) {
+      prevRef.current = key;
+      map.flyTo(center, zoom, { duration: 0.7, easeLinearity: 0.4 });
+    }
+  }, [center[0], center[1], zoom, map]);
   return null;
 }
 
@@ -258,10 +281,15 @@ const JourneyMap: React.FC<JourneyMapProps> = ({
         </Marker>
       ))}
       
-      {/* Attraction markers (red) */}
+      {/* Fly to new center when selectedStop changes */}
+      <FlyToCenter center={mapCenter} zoom={zoom} />
+
+      {/* Attraction markers — color from priority, fallback to tag color */}
       {allAttractions.map((attraction, index) => {
-        // choose color based on tag, default to red if unknown
-        const color = getAttractionTagInfo(attraction.tag as any)?.markerColor || '#FF3B30';
+        const color =
+          (attraction.priority && PRIORITY_COLORS[attraction.priority])
+          ?? getAttractionTagInfo(attraction.tag as any)?.markerColor
+          ?? '#ff9f0a';
         const icon = makeAttractionIcon(color);
         return (
           <Marker

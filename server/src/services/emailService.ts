@@ -112,7 +112,7 @@ export async function sendInvitationEmail(
   token: string,
   invitedBy: string
 ): Promise<void> {
-  const registrationUrl = `${process.env.FRONTEND_URL || 'http://localhost'}/register?token=${token}`;
+  const registrationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/register?token=${token}`;
   
   const html = `
     <!DOCTYPE html>
@@ -142,16 +142,16 @@ export async function sendInvitationEmail(
         .button {
           display: inline-block;
           background: #667eea;
-          color:#ffff
+          color: #ffffff;
           padding: 15px 30px;
           text-decoration: none;
           border-radius: 8px;
           margin: 20px 0;
           font-weight: 600;
-          transition: 0.3s all ease-in-out;
+          font-size: 16px;
         }
           .button:hover {
-          background: #536febff;
+          background: #536feb;
         }
         .footer {
           text-align: center;
@@ -199,7 +199,7 @@ export async function sendRegistrationRequestEmail(
   requesterEmail: string,
   requesterName?: string
 ): Promise<void> {
-  const reviewUrl = `${process.env.FRONTEND_URL || 'http://localhost'}/settings`;
+  const reviewUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/settings`;
 
   const html = `
     <!DOCTYPE html>
@@ -469,7 +469,7 @@ export async function sendJourneyInvitation(
   journeyTitle: string,
   token: string
 ): Promise<void> {
-  const acceptUrl = `${process.env.FRONTEND_URL || 'http://localhost'}/accept-invitation/${token}`;
+  const acceptUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/accept-invitation/${token}`;
   
   const html = `
     <!DOCTYPE html>

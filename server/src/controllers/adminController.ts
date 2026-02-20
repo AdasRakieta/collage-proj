@@ -290,7 +290,7 @@ export async function approveRegistrationRequest(req: Request, res: Response) {
       // Notify user with styled approval email
       const { sendEmail } = require('../services/emailService');
       try {
-        const signInUrl = `${process.env.FRONTEND_URL || 'http://localhost'}/login`;
+        const signInUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`;
         const html = `
           <!DOCTYPE html>
           <html>
@@ -299,7 +299,7 @@ export async function approveRegistrationRequest(req: Request, res: Response) {
               body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height:1.6; color:#333; max-width:600px; margin:0 auto; padding:20px; }
               .header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align:center; }
               .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
-              .button { display:inline-block; background:#667eea; color: white; padding: 12px 24px; text-decoration:none; border-radius:8px; margin:18px 0; font-weight:600; }
+              .button { display:inline-block; background:#667eea; color: white; padding: 12px 24px; text-decoration:none; border-radius:8px; margin:18px 0; font-weight:600; font-size:15px; }
               .footer { text-align:center; margin-top:20px; font-size:12px; color:#6b7280; }
             </style>
           </head>
@@ -358,7 +358,7 @@ export async function approveRegistrationRequest(req: Request, res: Response) {
     // Send styled notification email (JSON fallback)
     const { sendEmail } = require('../services/emailService');
     try {
-      const signInUrl = `${process.env.FRONTEND_URL || 'http://localhost'}/login`;
+      const signInUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`;
       const html = `
         <!DOCTYPE html>
         <html>
@@ -367,7 +367,7 @@ export async function approveRegistrationRequest(req: Request, res: Response) {
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height:1.6; color:#333; max-width:600px; margin:0 auto; padding:20px; }
             .header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align:center; }
             .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
-            .button { display:inline-block; background:#667eea; color: white; padding: 12px 24px; text-decoration:none; border-radius:8px; margin:18px 0; font-weight:600; }
+            .button { display:inline-block; background:#667eea; color: white; padding: 12px 24px; text-decoration:none; border-radius:8px; margin:18px 0; font-weight:600; font-size:15px; }
             .footer { text-align:center; margin-top:20px; font-size:12px; color:#6b7280; }
           </style>
         </head>
