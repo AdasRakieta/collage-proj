@@ -474,7 +474,7 @@ export async function googleAuthStart(req: Request, res: Response) {
 export async function googleAuthCallback(req: Request, res: Response) {
   try {
     const code = (req.query.code as string) || null;
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}${process.env.FRONTEND_BASE_PATH || '/journey'}`;
 
     if (!code) return res.redirect(`${frontendUrl}/login?error=missing_code`);
 
@@ -532,7 +532,7 @@ export async function googleAuthCallback(req: Request, res: Response) {
     return res.redirect(redirectUrl);
   } catch (err) {
     console.error('googleAuthCallback error:', (err as any)?.response?.data || err);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}${process.env.FRONTEND_BASE_PATH || '/journey'}`;
     return res.redirect(`${frontendUrl}/login?error=oauth_error`);
   }
 }
@@ -571,7 +571,7 @@ export async function googleRegisterStart(req: Request, res: Response) {
 export async function googleRegisterCallback(req: Request, res: Response) {
   try {
     const code = (req.query.code as string) || null;
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}${process.env.FRONTEND_BASE_PATH || '/journey'}`;
 
     if (!code) return res.redirect(`${frontendUrl}/register?error=missing_code`);
 
@@ -640,7 +640,7 @@ export async function googleRegisterCallback(req: Request, res: Response) {
     return res.redirect(`${frontendUrl}/register?info=request_sent`);
   } catch (err) {
     console.error('googleRegisterCallback error:', (err as any)?.response?.data || err);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}${process.env.FRONTEND_BASE_PATH || '/journey'}`;
     return res.redirect(`${frontendUrl}/register?error=oauth_error`);
   }
 }

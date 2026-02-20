@@ -112,7 +112,8 @@ export async function sendInvitationEmail(
   token: string,
   invitedBy: string
 ): Promise<void> {
-  const registrationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/register?token=${token}`;
+  const basePath = process.env.FRONTEND_BASE_PATH || '/journey';
+  const registrationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}${basePath}/register?token=${token}`;
   
   const html = `
     <!DOCTYPE html>
@@ -199,7 +200,8 @@ export async function sendRegistrationRequestEmail(
   requesterEmail: string,
   requesterName?: string
 ): Promise<void> {
-  const reviewUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/settings`;
+  const basePath = process.env.FRONTEND_BASE_PATH || '/journey';
+  const reviewUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}${basePath}/settings`;
 
   const html = `
     <!DOCTYPE html>
@@ -469,7 +471,8 @@ export async function sendJourneyInvitation(
   journeyTitle: string,
   token: string
 ): Promise<void> {
-  const acceptUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/accept-invitation/${token}`;
+  const basePath = process.env.FRONTEND_BASE_PATH || '/journey';
+  const acceptUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}${basePath}/accept-invitation/${token}`;
   
   const html = `
     <!DOCTYPE html>

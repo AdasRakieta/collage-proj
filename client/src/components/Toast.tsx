@@ -11,78 +11,109 @@ export interface ToastProps {
   onClose: (id: string) => void;
 }
 
+const ACCENT: Record<ToastType, { bar: string; icon: JSX.Element; bg: string; border: string; text: string; closeBtn: string }> = {
+  success: {
+    bg: 'bg-green-50 dark:bg-[#0d2010]',
+    border: 'border-green-300 dark:border-green-700/50',
+    bar: 'bg-green-500',
+    text: 'text-green-900 dark:text-green-100',
+    closeBtn: 'text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/40',
+    icon: <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />,
+  },
+  error: {
+    bg: 'bg-red-50 dark:bg-[#200d0d]',
+    border: 'border-red-300 dark:border-red-700/50',
+    bar: 'bg-red-500',
+    text: 'text-red-900 dark:text-red-100',
+    closeBtn: 'text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40',
+    icon: <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />,
+  },
+  warning: {
+    bg: 'bg-amber-50 dark:bg-[#1f1500]',
+    border: 'border-amber-300 dark:border-amber-600/50',
+    bar: 'bg-amber-400',
+    text: 'text-amber-900 dark:text-amber-100',
+    closeBtn: 'text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40',
+    icon: <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />,
+  },
+  info: {
+    bg: 'bg-blue-50 dark:bg-[#0a1525]',
+    border: 'border-blue-300 dark:border-blue-700/50',
+    bar: 'bg-blue-500',
+    text: 'text-blue-900 dark:text-blue-100',
+    closeBtn: 'text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40',
+    icon: <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />,
+  },
+};
+
 const Toast: React.FC<ToastProps> = ({ id, message, type, duration = 5000, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [progress, setProgress] = useState(100);
+  const accent = ACCENT[type];
 
   useEffect(() => {
-    // Fade in animation
-    setTimeout(() => setIsVisible(true), 10);
+    const showTimer = setTimeout(() => setIsVisible(true), 10);
 
-    // Auto close after duration
-    const timer = setTimeout(() => {
+    const start = Date.now();
+    const tick = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+      setProgress(remaining);
+    }, 30);
+
+    const closeTimer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(() => onClose(id), 300); // Wait for fade out animation
+      setTimeout(() => onClose(id), 320);
     }, duration);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(closeTimer);
+      clearInterval(tick);
+    };
   }, [id, duration, onClose]);
-
-  const getToastStyles = () => {
-    switch (type) {
-      case 'success':
-        return 'bg-green-900 border-green-700 text-green-100';
-      case 'error':
-        return 'bg-red-900 border-red-700 text-red-100';
-      case 'warning':
-        return 'bg-yellow-900 border-yellow-700 text-yellow-100';
-      case 'info':
-      default:
-        return 'bg-blue-900 border-blue-700 text-blue-100';
-    }
-  };
-
-  const getIcon = () => {
-    switch (type) {
-      case 'success':
-        return <CheckCircle className="w-5 h-5 text-green-400" />;
-      case 'error':
-        return <AlertCircle className="w-5 h-5 text-red-400" />;
-      case 'warning':
-        return <AlertTriangle className="w-5 h-5 text-yellow-400" />;
-      case 'info':
-      default:
-        return <Info className="w-5 h-5 text-blue-400" />;
-    }
-  };
 
   return (
     <div
       className={`
-        fixed bottom-4 right-4 z-50
-        flex items-center gap-3 px-4 py-3 rounded-lg border
-        shadow-lg backdrop-blur-sm
-        transition-all duration-300 ease-in-out
-        ${getToastStyles()}
-        ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}
+        relative overflow-hidden
+        flex items-center gap-3 px-4 py-3 rounded-xl border
+        shadow-lg backdrop-blur-md
+        transition-all duration-[320ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]
+        ${accent.bg} ${accent.border}
+        ${isVisible ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-8 opacity-0 scale-95'}
         min-w-[300px] max-w-[400px]
       `}
     >
-      {getIcon()}
-      <p className="flex-1 text-sm font-medium">{message}</p>
-      <button
-        onClick={() => {
-          setIsVisible(false);
-          setTimeout(() => onClose(id), 300);
-        }}
-        className="p-1 rounded hover:bg-white/10 transition-colors"
-      >
-        <X className="w-4 h-4 text-black dark:text-white" />
-      </button>
+      <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" style={{ background: 'inherit' }}>
+        <div className={`absolute inset-0 ${accent.bar} rounded-l-xl`} />
+      </div>
+
+      <div className="flex items-center gap-3 pl-1 w-full">
+        <div className="transition-transform duration-200" style={{ transform: isVisible ? 'scale(1)' : 'scale(0.5)' }}>
+          {accent.icon}
+        </div>
+        <p className={`flex-1 text-sm font-medium leading-snug ${accent.text}`}>{message}</p>
+        <button
+          onClick={() => {
+            setIsVisible(false);
+            setTimeout(() => onClose(id), 320);
+          }}
+          className={`p-1 rounded-lg active:scale-90 transition-all duration-150 ${accent.closeBtn}`}
+          aria-label="Close"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      <div
+        className={`absolute bottom-0 left-0 h-[2px] ${accent.bar} opacity-60 transition-none`}
+        style={{ width: `${progress}%` }}
+      />
     </div>
   );
 };
 
-// Toast Container Component
 interface ToastContainerProps {
   toasts: Array<{
     id: string;
@@ -95,23 +126,14 @@ interface ToastContainerProps {
 
 export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onClose }) => {
   return (
-    <div className="fixed bottom-0 right-0 z-50 p-4 space-y-2">
-      {toasts.map((toast, index) => (
-        <div
-          key={toast.id}
-          style={{ 
-            transform: `translateY(-${index * 80}px)`,
-            transition: 'transform 0.3s ease-in-out'
-          }}
-        >
-          <Toast {...toast} onClose={onClose} />
-        </div>
+    <div className="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 items-end">
+      {toasts.map((toast) => (
+        <Toast key={toast.id} {...toast} onClose={onClose} />
       ))}
     </div>
   );
 };
 
-// Toast Hook
 export const useToast = () => {
   const [toasts, setToasts] = useState<Array<{
     id: string;

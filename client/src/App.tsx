@@ -2083,7 +2083,7 @@ function App() {
               {/* New Journey Button */}
               <button
                 onClick={() => setShowNewJourneyForm(true)}
-                className="gh-btn-primary"
+                className="gh-btn-primary btn-glow-green"
                 disabled={loading}
               >
                 <Plus className="w-5 h-5" />
@@ -2360,21 +2360,25 @@ function App() {
               </div>
               <div className="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
                 {loading && journeys.length === 0 ? (
-                  <p className="text-sm text-gray-600 dark:text-[#98989d] text-center py-8">
-                    Loading journeys...
-                  </p>
+                  <div className="space-y-3">
+                    {[1,2,3].map(i => (
+                      <div key={i} className="skeleton h-24 rounded-xl" />
+                    ))}
+                  </div>
                 ) : journeys.length === 0 ? (
-                  <p className="text-sm text-gray-600 dark:text-[#98989d] text-center py-8">
-                    No journeys yet. Create your first journey!
-                  </p>
+                  <div className="flex flex-col items-center justify-center py-10 text-center animate-slide-up-in">
+                    <div className="text-4xl mb-3 animate-float">🗺️</div>
+                    <p className="text-sm font-medium text-gray-700 dark:text-[#ffffff] mb-1">No journeys yet</p>
+                    <p className="text-xs text-gray-500 dark:text-[#98989d]">Click <span className="font-semibold text-blue-600 dark:text-[#0a84ff]">+ New Journey</span> to start</p>
+                  </div>
                 ) : (
                   journeys.map((journey) => (
                     <div
                       key={journey.id}
-                      className={`p-4 rounded-lg border transition-all ${
+                      className={`journey-card-item animate-slide-up-in stagger-item p-4 rounded-xl border ${
                         selectedJourney?.id === journey.id
-                          ? 'bg-gray-100 dark:bg-[#3f3f44] border-gray-300 dark:border-[#48484a]'
-                          : 'bg-gray-50 dark:bg-[#1c1c1e] border-gray-200 dark:border-[#38383a] hover:border-gray-300 dark:hover:border-[#48484a]'
+                          ? 'journey-card-selected bg-blue-50 dark:bg-[#1a1d2e] border-blue-300 dark:border-[#0a84ff]/40'
+                          : 'bg-gray-50 dark:bg-[#1c1c1e] border-gray-200 dark:border-[#38383a] cursor-pointer'
                       }`}
                     >
                       <div
@@ -2607,7 +2611,7 @@ function App() {
 
             {/* Journey Details */}
             {selectedJourney ? (
-              <div className="gh-card">
+              <div key={selectedJourney.id} className="gh-card animate-slide-up-in">
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-[#ffffff]">{selectedJourney.title}</h2>
@@ -2661,7 +2665,7 @@ function App() {
                         <p className="text-sm text-gray-600 dark:text-[#98989d]">No checklist items yet.</p>
                       ) : (
                         (selectedJourney!.checklist || []).map(item => (
-                          <div key={item.id} className="flex items-center justify-between bg-gray-50 dark:bg-[#1c1c1e] p-2 rounded-md border border-gray-200 dark:border-[#38383a]">
+                          <div key={item.id} className="checklist-item flex items-center justify-between bg-gray-50 dark:bg-[#1c1c1e] p-2 rounded-md border border-gray-200 dark:border-[#38383a]">
                             <div className="flex items-center gap-3">
                               <div className="flex items-center gap-2">
                                 <PaymentCheckbox id={`check-bought-${item.id}`} checked={item.bought || false} onChange={() => toggleChecklistBought(item.id)} label="Bought" />
@@ -2734,7 +2738,7 @@ function App() {
                   <div className={`space-y-3 transition-collapse overflow-hidden ${stopsOpen ? 'collapse-visible' : 'collapse-hidden'}`} aria-hidden={!stopsOpen}>
                       { (selectedJourney?.stops || []).length > 0 ? (
                         (selectedJourney?.stops || []).map((stop, index) => (
-                          <div key={stop.id ?? index} className="bg-gray-50 dark:bg-[#1c1c1e] p-4 rounded-lg border border-gray-200 dark:border-[#38383a]">
+                          <div key={stop.id ?? index} className="stop-card animate-slide-up-in stagger-item bg-gray-50 dark:bg-[#1c1c1e] p-4 rounded-xl border border-gray-200 dark:border-[#38383a]">
                             <div className="flex items-start gap-3">
                               <MapPin className="w-5 h-5 text-blue-600 dark:text-[#0a84ff] mt-1 flex-shrink-0" />
                               <div className="flex-1 min-w-0">
@@ -2897,7 +2901,11 @@ function App() {
                           </div>
                         ))
                       ) : (
-                        <p className="text-sm text-gray-600 dark:text-[#98989d] text-center py-4">No stops yet. Click on the map to add your first stop!</p>
+                        <div className="flex flex-col items-center py-6 text-center">
+                          <div className="text-3xl mb-2">📍</div>
+                          <p className="text-sm text-gray-600 dark:text-[#98989d]">No stops yet.</p>
+                          <p className="text-xs text-gray-400 dark:text-[#636366] mt-1">Click on the map to add your first stop</p>
+                        </div>
                       )}
                     </div>
 
@@ -2927,7 +2935,7 @@ function App() {
                   <div className={`space-y-3 transition-collapse overflow-hidden ${transportsOpen ? 'collapse-visible' : 'collapse-hidden'}`} aria-hidden={!transportsOpen}>
                     {selectedJourney.transports && selectedJourney.transports.length > 0 ? (
                       selectedJourney.transports.map((transport, index) => (
-                        <div key={transport.id ?? index} className="bg-gray-50 dark:bg-[#1c1c1e] p-4 rounded-lg border border-gray-200 dark:border-[#38383a]">
+                        <div key={transport.id ?? index} className="stop-card animate-slide-up-in stagger-item bg-gray-50 dark:bg-[#1c1c1e] p-4 rounded-xl border border-gray-200 dark:border-[#38383a]">
                           <div className="flex items-start gap-3">
                             <div className="text-blue-600 dark:text-[#0a84ff] mt-1 flex-shrink-0">
                               {getTransportIcon(transport.type)}
@@ -3152,7 +3160,7 @@ function App() {
       {/* New Journey Modal */}
       {showNewJourneyForm && (
         <div className="gh-modal-overlay" onClick={() => setShowNewJourneyForm(false)}>
-          <div className="gh-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="gh-modal animate-bounce-in" onClick={(e) => e.stopPropagation()}>
             <div className="p-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-[#ffffff] mb-6">Create New Journey</h2>
               <div className="space-y-4">

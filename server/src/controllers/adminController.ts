@@ -290,7 +290,7 @@ export async function approveRegistrationRequest(req: Request, res: Response) {
       // Notify user with styled approval email
       const { sendEmail } = require('../services/emailService');
       try {
-        const signInUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`;
+        const signInUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}${process.env.FRONTEND_BASE_PATH || '/journey'}/login`;
         const html = `
           <!DOCTYPE html>
           <html>
@@ -358,7 +358,7 @@ export async function approveRegistrationRequest(req: Request, res: Response) {
     // Send styled notification email (JSON fallback)
     const { sendEmail } = require('../services/emailService');
     try {
-      const signInUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`;
+      const signInUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}${process.env.FRONTEND_BASE_PATH || '/journey'}/login`;
       const html = `
         <!DOCTYPE html>
         <html>

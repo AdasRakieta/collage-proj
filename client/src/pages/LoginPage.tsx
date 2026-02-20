@@ -37,8 +37,8 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-[#0d1117] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl shadow-lg mb-4">
+        <div className="text-center mb-8 animate-slide-up-in">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl shadow-lg mb-4 hover:scale-105 transition-transform duration-300 animate-float">
             <MapPin size={40} className="text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Journey Planner</h1>
@@ -46,7 +46,7 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Login Card */}
-        <div className="bg-[#161b22] rounded-2xl shadow-xl p-8 border border-[#30363d]">
+        <div className="bg-[#161b22] rounded-2xl shadow-xl p-8 border border-[#30363d] animate-bounce-in" style={{ animationDelay: '0.08s' }}>
           <h2 className="text-2xl font-semibold text-white mb-6">Sign In</h2>
 
           {error && (
@@ -103,7 +103,7 @@ const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-md hover:shadow-lg transform transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.97] text-white font-semibold py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
@@ -119,7 +119,7 @@ const LoginPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/register')}
-              className="w-full bg-[#8c3afc] hover:bg-[#732de6] text-white font-semibold py-3 rounded-xl shadow-md hover:shadow-lg transform transition-all flex items-center justify-center gap-2"
+              className="w-full bg-[#8c3afc] hover:bg-[#732de6] active:scale-[0.97] text-white font-semibold py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
             >
               Create Account
             </button>

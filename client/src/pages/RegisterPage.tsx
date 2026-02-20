@@ -62,6 +62,18 @@ const RegisterPage: React.FC = () => {
       return setError('Invitation token missing');
     }
 
+    if (!formData.username || !formData.password) {
+      return setError('Username and password are required');
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      return setError('Passwords do not match');
+    }
+
+    if (formData.password.length < 8 || !/[A-Z]/.test(formData.password) || !/[a-z]/.test(formData.password) || !/[0-9]/.test(formData.password)) {
+      return setError('Password must be at least 8 characters with uppercase, lowercase, and a number');
+    }
+
     setIsLoading(true);
     try {
       await authAPI.register(token, formData.username, formData.password);
