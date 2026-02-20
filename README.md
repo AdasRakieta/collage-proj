@@ -180,17 +180,6 @@ The UI will be available at `http://localhost:5173`
 curl http://localhost:5001/api/health
 ```
 
-**Check database connection:**
-```bash
-docker ps | grep journey-planner-db
-docker logs journey-planner-db
-```
-
-**Access PostgreSQL:**
-```bash
-docker exec -it journey-planner-db psql -U journey_user -d journey_planner
-```
-
 **Full setup guide:**
 ```bash
 # Python
@@ -231,9 +220,7 @@ Journey Planner can be deployed alongside existing applications (like SmartHome)
    - **One Nginx** for Journey Planner + SmartHome + other apps
    - **Simple, stable, proven technology** - no Traefik complications
 
-2. **Legacy Options** (deprecated - use Nginx instead)
-   - [PORTAINER_DEPLOY.md](./PORTAINER_DEPLOY.md) - Traefik-based (complex)
-   - [NGINX_CONFIG_FOR_SMARTHOME.md](./NGINX_CONFIG_FOR_SMARTHOME.md) - Old configs
+
 
 ### Quick Manual Deployment:
 
@@ -366,11 +353,7 @@ For issues and questions, please open an issue on GitHub.
 - **[NGINX_SETUP.md](NGINX_SETUP.md)** - 📝 Detailed Nginx reverse proxy configuration
 - **[NGINX_INTEGRATION.md](NGINX_INTEGRATION.md)** - 🔗 Complete Nginx setup for SmartHome + Journey Planner
 
-### Legacy Deployment (Traefik - Deprecated)
-- **[NGINX_STANDALONE_SETUP.md](NGINX_STANDALONE_SETUP.md)** - 🏗️ Nginx jako osobny stack
-- **[PORTAINER_LOCAL_BUILD.md](PORTAINER_LOCAL_BUILD.md)** - 🔧 Build lokalny w Portainerze
-- **[PORTAINER_ENV.md](PORTAINER_ENV.md)** - 📦 Environment variables management
-- **[GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md)** - 🚀 Automated Docker builds
+
 
 ### Configuration & Troubleshooting
 - **[FRONTEND_BUILD_CRITICAL.md](FRONTEND_BUILD_CRITICAL.md)** - 🚨 VITE_API_URL i compile-time config
@@ -387,7 +370,6 @@ For issues and questions, please open an issue on GitHub.
 - `scripts/verify-deployment.sh` - **NEW!** Verify Nginx deployment (10 checks)
 - `validate-env.sh` - Validate environment variables
 - `find-postgres-ip.sh` - Find existing PostgreSQL container
-- `build-on-pi.sh` - Build ARM64 images on Raspberry Pi
 - `deploy-on-pi.sh` - Automated deployment script
 - `switch-env-mode.sh` - Switch between direct/Nginx modes
 
