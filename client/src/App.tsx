@@ -755,7 +755,7 @@ function App() {
         if (j.id === stop.journeyId) {
           const updated = { 
             ...j, 
-            stops: (j.stops || []).map(s => s.id === stop.id ? stop : s)
+            stops: (j.stops || []).map(s => s.id === stop.id ? { ...stop, attractions: s.attractions } : s)
           } as Journey;
           updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
           return updated;
@@ -765,7 +765,7 @@ function App() {
       if (selectedJourney?.id === stop.journeyId) {
         setSelectedJourney(prev => {
           if (!prev) return null;
-          const updated = { ...prev, stops: (prev.stops || []).map(s => s.id === stop.id ? stop : s) } as Journey;
+          const updated = { ...prev, stops: (prev.stops || []).map(s => s.id === stop.id ? { ...stop, attractions: s.attractions } : s) } as Journey;
           updated.totalEstimatedCost = updated.totalEstimatedCost ?? calculateJourneyTotalCost(updated);
           return updated;
         });
@@ -1586,7 +1586,9 @@ function App() {
       setLoading(true);
       const updated = await stopService.updateStop(editingStop.id, editingStop);
       
-      const updatedStops = selectedJourney.stops?.map(s => s.id === updated.id ? updated : s);
+      const updatedStops = selectedJourney.stops?.map(s =>
+        s.id === updated.id ? { ...updated, attractions: s.attractions } : s
+      );
       const updatedJourney = { ...selectedJourney, stops: updatedStops };
       
       setSelectedJourney(updatedJourney);

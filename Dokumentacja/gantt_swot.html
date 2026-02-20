@@ -127,7 +127,7 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 16px;
-    overflow: clip;        /* clip (not hidden!) so sticky children still work */
+    /* NO overflow here — any overflow value (even clip) breaks position:sticky in most browsers */
     margin-bottom: 64px;
   }
 
@@ -140,6 +140,9 @@
     z-index: 10;
     background: var(--card);
     box-shadow: 0 4px 16px rgba(0,0,0,.55);
+    /* Round the top corners to match the wrapper (since wrapper no longer clips) */
+    border-radius: 16px 16px 0 0;
+    overflow: hidden;
   }
   .gantt-header-label {
     background: var(--card);
