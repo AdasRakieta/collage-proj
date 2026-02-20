@@ -694,9 +694,16 @@ function App() {
     
     socketService.on('journey:updated', (journey: Journey) => {
       console.log('Real-time: Journey updated', journey);
-      setJourneys(prev => prev.map(j => j.id === journey.id ? journey : j));
+      // Preserve nested stops/transports — server emits only flat journey fields (no includes)
+      setJourneys(prev => prev.map(j => j.id === journey.id
+        ? { ...j, ...journey, stops: j.stops, transports: j.transports }
+        : j
+      ));
       if (selectedJourney?.id === journey.id) {
-        setSelectedJourney(journey);
+        setSelectedJourney(prev => prev
+          ? { ...prev, ...journey, stops: prev.stops, transports: prev.transports }
+          : journey
+        );
       }
       // Don't show toast - avoid duplicate notifications when user updates journey
     });
@@ -871,9 +878,9 @@ function App() {
       // Removed duplicate notification - handled by manual actions
     });
     
-    socketService.on('attraction:deleted', async ({ id }: { id: number }) => {
+    socketService.on('attraction:deleted', async ({ id, journeyId: evtJourneyId }: { id: number; journeyId?: number }) => {
       console.log('Real-time: Attraction deleted', id);
-      const journeyId = journeyIdFromAttractionId(id);
+      const journeyId = evtJourneyId ?? journeyIdFromAttractionId(id);
       const refreshed = journeyId ? await refreshJourneyFromServer(journeyId) : null;
       if (refreshed) return;
 
@@ -3540,19 +3547,6 @@ function App() {
                       onChange={(e) => setNewStop({ ...newStop, accommodationPrice: parseFloat(e.target.value) || 0 })}
                       className="gh-input"
                     />
-                    {/* Live conversion to journey main currency */}
-                    {((newStop.accommodationPrice || 0) > 0) && (
-                      <p className="text-xs text-gray-500 dark:text-[#636366] mt-1">
-                        {(() => {
-                          const mainCurr = newJourney.currency || selectedJourney?.currency || 'PLN';
-                          const from = newStop.accommodationCurrency || mainCurr;
-                          if (from === mainCurr) return null;
-                          const conv = convertAmount(newStop.accommodationPrice || 0, from, mainCurr);
-                          if (conv == null) return <span>≈ conversion not available</span>;
-                          return <span>≈ {conv.toFixed(2)} {mainCurr}</span>;
-                        })()}
-                      </p>
-                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
@@ -3842,23 +3836,6 @@ function App() {
                       onChange={(e) => setEditingStop({ ...editingStop, accommodationPrice: parseFloat(e.target.value) || 0 })}
                       className="gh-input"
                     />
-                    {((editingStop?.accommodationPrice || 0) > 0) && (
-                      <p className="text-xs text-gray-500 dark:text-[#636366] mt-1">
-                        {(() => {
-                          const mainCurr = editingJourney?.currency || selectedJourney?.currency || newJourney.currency || 'PLN';
-                          const from = editingStop?.accommodationCurrency || mainCurr;
-                          if (from === mainCurr) return null;
-                          const stored = getStoredConverted(editingStop, 'accommodation_price_converted', 'accommodation_price_converted_currency');
-                          if (stored) {
-                            const value = stored.currency === mainCurr ? stored.value : (convertAmount(stored.value, stored.currency, mainCurr) ?? stored.value);
-                            return <span>≈ {value.toFixed(2)} {mainCurr}</span>;
-                          }
-                          const conv = convertAmount(editingStop!.accommodationPrice || 0, from, mainCurr);
-                          if (conv == null) return <span>≈ conversion not available</span>;
-                          return <span>≈ {conv.toFixed(2)} {mainCurr}</span>;
-                        })()}
-                      </p>
-                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
@@ -4088,18 +4065,6 @@ function App() {
                       onChange={(e) => setNewTransport({ ...newTransport, price: parseFloat(e.target.value) || 0 })}
                       className="gh-input"
                     />
-                    {((newTransport.price || 0) > 0) && (
-                      <p className="text-xs text-gray-500 dark:text-[#636366] mt-1">
-                        {(() => {
-                          const mainCurr = newJourney.currency || selectedJourney?.currency || 'PLN';
-                          const from = newTransport.currency || mainCurr;
-                          if (from === mainCurr) return null;
-                          const conv = convertAmount(newTransport.price || 0, from, mainCurr);
-                          if (conv == null) return <span>≈ conversion not available</span>;
-                          return <span>≈ {conv.toFixed(2)} {mainCurr}</span>;
-                        })()}
-                      </p>
-                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
@@ -4498,18 +4463,6 @@ function App() {
                       <option value="GBP">GBP</option>
                       <option value="KRW">KRW</option>
                     </select>
-                    {((newAttraction.estimatedCost || 0) > 0) && (
-                      <p className="text-xs text-gray-500 dark:text-[#636366] mt-2">
-                        {(() => {
-                          const mainCurr = newJourney.currency || selectedJourney?.currency || 'PLN';
-                          const from = (newAttraction as any).currency || mainCurr;
-                          if (from === mainCurr) return null;
-                          const conv = convertAmount(newAttraction.estimatedCost || 0, from, mainCurr);
-                          if (conv == null) return <span>≈ conversion not available</span>;
-                          return <span>≈ {conv.toFixed(2)} {mainCurr}</span>;
-                        })()}
-                      </p>
-                    )}
                   </div>
                 </div>
 

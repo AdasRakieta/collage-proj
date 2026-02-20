@@ -287,7 +287,8 @@ export const deleteAttraction = async (req: Request, res: Response) => {
       const ok = await jsonStore.deleteById('attractions', attractionId);
       if (!ok) return res.status(404).json({ message: 'Attraction not found' });
       const io = req.app.get('io');
-      io.emit('attraction:deleted', { id: attractionId });
+      const jsonJourneyId = (await jsonStore.getById('stops', existing.stop_id))?.journey_id;
+      io.emit('attraction:deleted', { id: attractionId, journeyId: jsonJourneyId });
       try {
         const stop = await jsonStore.getById('stops', existing.stop_id);
         if (stop) {
@@ -306,7 +307,10 @@ export const deleteAttraction = async (req: Request, res: Response) => {
     
     // Emit Socket.IO event
     const io = req.app.get('io');
-    io.emit('attraction:deleted', { id: attractionId });
+    // Fetch journeyId before emitting so clients can refresh without needing local lookup
+    const stopRes2 = await query('SELECT journey_id FROM stops WHERE id = $1', [aRes.rows[0]?.stop_id]);
+    const emitJourneyId = stopRes2.rows[0]?.journey_id;
+    io.emit('attraction:deleted', { id: attractionId, journeyId: emitJourneyId });
     try {
       if (stopId) {
         const stopRes = await query('SELECT journey_id FROM stops WHERE id = $1', [stopId]);

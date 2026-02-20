@@ -893,21 +893,32 @@ const ItineraryPage: React.FC = () => {
     };
 
     const handleAttractionUpdate = (data: any) => {
-      console.log('🔄 ItineraryPage received: Attraction updated', data);
+      console.log('🔄 ItineraryPage received: Attraction updated/created/deleted', data);
+      loadData();
+    };
+
+    const handleStopCreated = (data: any) => {
+      console.log('🔄 ItineraryPage received: Stop created', data);
       loadData();
     };
 
     socketService.on('stop:updated', handleStopUpdate);
+    socketService.on('stop:created', handleStopCreated);
     socketService.on('journey:updated', handleJourneyUpdate);
     socketService.on('attraction:updated', handleAttractionUpdate);
+    socketService.on('attraction:created', handleAttractionUpdate);
+    socketService.on('attraction:deleted', handleAttractionUpdate);
 
     console.log('✅ ItineraryPage: Socket listeners registered');
 
     return () => {
       console.log('🧹 ItineraryPage: Cleaning up socket listeners');
       socketService.off('stop:updated', handleStopUpdate);
+      socketService.off('stop:created', handleStopCreated);
       socketService.off('journey:updated', handleJourneyUpdate);
       socketService.off('attraction:updated', handleAttractionUpdate);
+      socketService.off('attraction:created', handleAttractionUpdate);
+      socketService.off('attraction:deleted', handleAttractionUpdate);
     };
   }, [loadData]);
 
