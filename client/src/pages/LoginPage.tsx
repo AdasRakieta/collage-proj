@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { MapPin, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import PasswordField from '../components/PasswordField';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
   
   const [formData, setFormData] = useState({
@@ -22,7 +23,8 @@ const LoginPage: React.FC = () => {
 
     try {
       await login(formData.login, formData.password);
-      navigate('/');
+      const redirect = searchParams.get('redirect');
+      navigate(redirect || '/');
     } catch (err: any) {
       console.error('Login failed:', err);
       setError(err.response?.data?.error || 'Invalid credentials');

@@ -10,6 +10,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import SettingsPage from './pages/SettingsPage';
 import ItineraryPage from './pages/ItineraryPage';
 import AuthCallback from './pages/AuthCallback';
+import AcceptInvitationPage from './pages/AcceptInvitationPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import './index.css';
 
@@ -24,6 +25,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/accept-invitation/:token" element={<AcceptInvitationPage />} />
             
             {/* Protected routes */}
             <Route path="/" element={<ProtectedRoute><App /></ProtectedRoute>} />

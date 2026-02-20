@@ -2202,6 +2202,8 @@ const ItineraryPage: React.FC = () => {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
+                  Description
                 </label>
                 <textarea
                   placeholder="Details about the attraction..."
