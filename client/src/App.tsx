@@ -1425,7 +1425,7 @@ function App() {
             ? null
             : attractionData.duration,
       };
-      const createdAttraction = await attractionService.createAttraction(
+      await attractionService.createAttraction(
         selectedStopForAttraction!,
         payload
       );
@@ -1657,7 +1657,7 @@ function App() {
         }
       }
       
-      const updated = await attractionService.updateAttraction(attractionData.id!, attractionData);
+      await attractionService.updateAttraction(attractionData.id!, attractionData);
       
       // Reload journey data from server to ensure all fields are up-to-date
       const refreshedJourney = await journeyService.getJourneyById(selectedJourney.id!);
@@ -2524,13 +2524,15 @@ function App() {
                 onMapClick={selectedJourney ? handleMapClick : undefined}
                 center={
                   // Use newStop coordinates if available (for geocoding), otherwise use first stop
-                  newStop.latitude && newStop.longitude
-                    ? [newStop.latitude, newStop.longitude]
-                    : selectedJourney?.stops && selectedJourney.stops.length > 0
-                    ? [
-                        selectedJourney.stops[0].latitude,
-                        selectedJourney.stops[0].longitude,
-                      ]
+                  newStop.latitude != null && newStop.longitude != null
+                    ? ([newStop.latitude, newStop.longitude] as [number, number])
+                    : selectedJourney?.stops && selectedJourney.stops.length > 0 &&
+                      selectedJourney.stops[0].latitude != null &&
+                      selectedJourney.stops[0].longitude != null
+                    ? ([
+                        selectedJourney.stops[0].latitude!,
+                        selectedJourney.stops[0].longitude!,
+                      ] as [number, number])
                     : undefined
                 }
                 journeyCurrency={selectedJourney?.currency}
@@ -2690,8 +2692,8 @@ function App() {
                                           setPendingFile(null);
                                           setUploadingAttachment(null);
                                           if (stopFileRef.current) stopFileRef.current.value = '';
-                                        } catch (error) {
-                                          console.error('Failed to fetch stop:', error);
+                                        } catch (err) {
+                                          console.error('Failed to fetch stop:', err);
                                           error('Failed to load stop data');
                                         }
                                       }}

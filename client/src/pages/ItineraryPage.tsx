@@ -31,6 +31,7 @@ import type { Journey, Stop, Attraction } from '../types/journey';
 import { useToast, ToastContainer } from '../components/Toast';
 import JourneyMapWrapper from '../components/JourneyMapWrapper';
 import { getAttractionTagInfo, getAvailableAttractionTags } from '../utils/attractionTags';
+import type { AttractionTag } from '../utils/attractionTags';
 import { geocodeAddress } from '../services/geocoding';
 
 // Helper function for time validation
@@ -216,16 +217,14 @@ const PriorityBadge: React.FC<{ priority?: PriorityType; compact?: boolean }> = 
 // Draggable Attraction Card Component
 const AttractionCard: React.FC<{
   attraction: Attraction;
-  stop?: Stop;
   onPriorityChange: (id: number, priority: PriorityType) => void;
-  onPlannedDateChange?: (id: number, date: string | null) => void;
   onDragStart: (e: React.DragEvent, attraction: Attraction) => void;
   onDragEnd: (e: React.DragEvent) => void;
   isDragging: boolean;
   isDropTarget?: boolean;
   onEdit?: (attraction: Attraction) => void;
   onDelete?: (id: number) => void;
-}> = ({ attraction, stop, onPriorityChange, onPlannedDateChange, onDragStart, onDragEnd, isDragging, isDropTarget, onEdit, onDelete }) => {
+}> = ({ attraction, onPriorityChange, onDragStart, onDragEnd, isDragging, isDropTarget, onEdit, onDelete }) => {
   const [showPriorityMenu, setShowPriorityMenu] = useState(false);
   
   const currentPriority = attraction.priority || 'should';
@@ -440,7 +439,6 @@ const StopSection: React.FC<{
   isExpanded: boolean;
   onToggle: () => void;
   onPriorityChange: (attractionId: number, priority: PriorityType) => void;
-  onPlannedDateChange: (attractionId: number, date: string | null) => void;
   onDragStart: (e: React.DragEvent, attraction: Attraction) => void;
   onDragEnd: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent, stopId: number, index: number) => void;
@@ -458,7 +456,6 @@ const StopSection: React.FC<{
   isExpanded,
   onToggle,
   onPriorityChange,
-  onPlannedDateChange,
   onDragStart,
   onDragEnd,
   onDrop,
@@ -685,9 +682,7 @@ const StopSection: React.FC<{
                           >
                             <AttractionCard
                               attraction={attraction}
-                              stop={stop}
                               onPriorityChange={onPriorityChange}
-                              onPlannedDateChange={onPlannedDateChange}
                               onDragStart={onDragStart}
                               onDragEnd={onDragEnd}
                               isDragging={draggingAttraction?.id === attraction.id}
@@ -734,9 +729,7 @@ const StopSection: React.FC<{
                       >
                         <AttractionCard
                           attraction={attraction}
-                          stop={stop}
                           onPriorityChange={onPriorityChange}
-                          onPlannedDateChange={onPlannedDateChange}
                           onDragStart={onDragStart}
                           onDragEnd={onDragEnd}
                           isDragging={draggingAttraction?.id === attraction.id}
@@ -809,7 +802,7 @@ const ItineraryPage: React.FC = () => {
     estimatedCost: undefined,
     currency: journey?.currency || 'PLN',
     duration: '',
-    tag: undefined,
+    tag: null,
     addressStreet: '',
     addressCity: '',
     addressPostalCode: '',
@@ -962,7 +955,7 @@ const ItineraryPage: React.FC = () => {
 
     try {
       setLoading(true);
-      const created = await attractionService.createAttraction(selectedStopForAttraction, {
+      await attractionService.createAttraction(selectedStopForAttraction, {
         ...newAttraction,
         currency: newAttraction.currency || journey?.currency || 'PLN'
       });
@@ -976,7 +969,7 @@ const ItineraryPage: React.FC = () => {
         estimatedCost: undefined,
         currency: journey?.currency || 'PLN',
         duration: '',
-        tag: undefined,
+        tag: null,
         addressStreet: '',
         addressCity: '',
         addressPostalCode: '',
@@ -1067,9 +1060,9 @@ const ItineraryPage: React.FC = () => {
       if (coords) {
         setEditingAttraction({
           ...editingAttraction,
-          latitude: coords.lat,
-          longitude: coords.lng,
-          address: coords.display_name || fullAddress
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          address: coords.displayName || fullAddress
         });
         toast.success('Coordinates found!');
       } else {
@@ -1106,9 +1099,9 @@ const ItineraryPage: React.FC = () => {
       if (coords) {
         setNewAttraction({
           ...newAttraction,
-          latitude: coords.lat,
-          longitude: coords.lng,
-          address: coords.display_name || fullAddress
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          address: coords.displayName || fullAddress
         });
         toast.success('Coordinates found!');
       } else {
@@ -1242,7 +1235,7 @@ const ItineraryPage: React.FC = () => {
     if (!stop) return;
     
     const attractions = attractionsByStop[stopId] || [];
-    const optimized = optimizeRoute(attractions, stop.latitude, stop.longitude);
+    const optimized = optimizeRoute(attractions, stop.latitude ?? undefined, stop.longitude ?? undefined);
     
     setAttractionsByStop(prev => ({
       ...prev,
@@ -1483,7 +1476,6 @@ const ItineraryPage: React.FC = () => {
                   isExpanded={expandedStops.has(stop.id!)}
                   onToggle={() => toggleStop(stop.id!)}
                   onPriorityChange={handlePriorityChange}
-                  onPlannedDateChange={handlePlannedDateChange}
                   onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
                   onDrop={handleDrop}
@@ -1588,12 +1580,7 @@ const ItineraryPage: React.FC = () => {
                                     const tagInfo = getAttractionTagInfo(attraction.tag);
                                     return tagInfo && (
                                       <span 
-                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium shrink-0"
-                                        style={{
-                                          backgroundColor: `${tagInfo.color}20`,
-                                          color: tagInfo.color,
-                                          border: `1px solid ${tagInfo.color}40`
-                                        }}
+                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium shrink-0 ${tagInfo.bgLight} ${tagInfo.textColor} ${tagInfo.borderColor}`}
                                       >
                                         {tagInfo.emoji} {tagInfo.label}
                                       </span>
@@ -1703,9 +1690,13 @@ const ItineraryPage: React.FC = () => {
                     }))
                 }
                 center={selectedStopForMap 
-                  ? stops.find(s => s.id === selectedStopForMap) 
-                    ? [stops.find(s => s.id === selectedStopForMap)!.latitude, stops.find(s => s.id === selectedStopForMap)!.longitude]
-                    : undefined
+                  ? (() => {
+                      const s = stops.find(s => s.id === selectedStopForMap);
+                      if (s && s.latitude != null && s.longitude != null) {
+                        return [s.latitude, s.longitude] as [number, number];
+                      }
+                      return undefined;
+                    })()
                   : undefined
                 }
                 zoom={selectedStopForMap ? 14 : 6}
@@ -1786,7 +1777,7 @@ const ItineraryPage: React.FC = () => {
                 </label>
                 <select
                   value={newAttraction.tag || ''}
-                  onChange={(e) => setNewAttraction({ ...newAttraction, tag: e.target.value || null })}
+                  onChange={(e) => setNewAttraction({ ...newAttraction, tag: (e.target.value as AttractionTag) || null })}
                   className="gh-select"
                 >
                   <option value="">No category</option>
@@ -2115,7 +2106,7 @@ const ItineraryPage: React.FC = () => {
                 </label>
                 <select
                   value={editingAttraction.tag || ''}
-                  onChange={(e) => setEditingAttraction({ ...editingAttraction, tag: e.target.value || null })}
+                  onChange={(e) => setEditingAttraction({ ...editingAttraction, tag: (e.target.value as AttractionTag) || null })}
                   className="gh-select"
                 >
                   <option value="">No category</option>
