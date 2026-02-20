@@ -107,8 +107,8 @@ const RegisterPage: React.FC = () => {
     <div className="min-h-screen bg-[#0d1117] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl shadow-lg mb-4">
+        <div className="text-center mb-8 animate-slide-up-in">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl shadow-lg mb-4 animate-float hover:scale-105 transition-transform duration-300">
             <MapPin size={40} className="text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
@@ -116,9 +116,9 @@ const RegisterPage: React.FC = () => {
         </div>
 
         {/* Register Card */}
-        <div className="bg-[#161b22] rounded-2xl shadow-xl p-8 border border-[#30363d]">
+        <div className="bg-[#161b22] rounded-2xl shadow-xl p-8 border border-[#30363d] animate-bounce-in" style={{ animationDelay: '0.08s' }}>
           {error && (
-            <div className="mb-6 p-4 bg-red-900/20 border border-red-800 rounded-xl flex items-start gap-3">
+            <div className="mb-6 p-4 bg-red-900/20 border border-red-800 rounded-xl flex items-start gap-3 animate-slide-up-in">
               <AlertCircle size={20} className="text-red-400 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-red-300">{error}</p>
             </div>
@@ -127,7 +127,7 @@ const RegisterPage: React.FC = () => {
           {!token ? (
             <div>
               {info === 'request_sent' && (
-                <div className="mb-4 p-3 bg-green-900/20 border border-green-800 rounded-lg">
+                <div className="mb-4 p-3 bg-green-900/20 border border-green-800 rounded-lg animate-slide-up-in">
                   <p className="text-sm text-green-200">Your request has been sent to the administrator for approval.</p>
                 </div>
               )}
@@ -166,8 +166,8 @@ const RegisterPage: React.FC = () => {
                     />
                   </div>
                   <div className="flex items-center gap-3">
-                    <button type="button" onClick={() => navigate('/login')} className="px-4 py-3 bg-red-600 hover:bg-red-700 dark:bg-[#ff453a] dark:hover:bg-red-600 text-white rounded-xl transition-all">Back</button>
-                    <button type="submit" disabled={isLoading} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl">{isLoading ? 'Sending...' : 'Send verification code'}</button>
+                    <button type="button" onClick={() => navigate('/login')} className="px-4 py-3 bg-red-600 hover:bg-red-700 dark:bg-[#ff453a] dark:hover:bg-red-600 text-white rounded-xl transition-all active:scale-[0.97]">Back</button>
+                    <button type="submit" disabled={isLoading} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl transition-all duration-200 active:scale-[0.97] disabled:active:scale-100">{isLoading ? 'Sending...' : 'Send verification code'}</button>
                   </div>
                 </form>
               ) : (
@@ -181,8 +181,8 @@ const RegisterPage: React.FC = () => {
                     <input id="code" type="text" value={code} onChange={(e) => setCode(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-[#0d1117] border border-[#30363d] text-white" placeholder="Enter code from email" required />
                   </div>
                   <div className="flex items-center gap-3">
-                    <button type="button" onClick={() => setStep('form')} className="px-4 py-3 bg-red-600 hover:bg-red-700 dark:bg-[#ff453a] dark:hover:bg-red-600 text-white rounded-xl transition-all">Back</button>
-                    <button type="submit" disabled={codeLoading} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl">{codeLoading ? 'Confirming...' : 'Confirm and Request Approval'}</button>
+                    <button type="button" onClick={() => setStep('form')} className="px-4 py-3 bg-red-600 hover:bg-red-700 dark:bg-[#ff453a] dark:hover:bg-red-600 text-white rounded-xl transition-all active:scale-[0.97]">Back</button>
+                    <button type="submit" disabled={codeLoading} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl transition-all duration-200 active:scale-[0.97] disabled:active:scale-100">{codeLoading ? 'Confirming...' : 'Confirm and Request Approval'}</button>
                   </div>
                 </form>
               )}
@@ -267,7 +267,7 @@ const RegisterPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-md hover:shadow-lg transform transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-md hover:shadow-lg transform transition-all duration-200 active:scale-[0.97] disabled:active:scale-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>

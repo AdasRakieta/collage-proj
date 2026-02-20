@@ -25,8 +25,17 @@ const DateInput: React.FC<DateInputProps> = ({
   // convert string to Date
   const parse = (s?: string): Date | null => {
     if (!s) return null;
-    const d = parseYMDToDate(s) || new Date(s);
-    return d instanceof Date && !isNaN(d.getTime()) ? d : null;
+    if (showTime) {
+      // For datetime values (stored as ISO/UTC), parse as full Date so the
+      // browser's local timezone is applied correctly — avoids off-by-one-day
+      // when toISOString() shifts midnight to the previous UTC day.
+      const d = new Date(s);
+      return !isNaN(d.getTime()) ? d : null;
+    }
+    // For date-only values use parseYMDToDate to keep local midnight (avoids
+    // the same timezone shift in the opposite direction).
+    const d = parseYMDToDate(s);
+    return d;
   };
 
   const selected = parse(value);

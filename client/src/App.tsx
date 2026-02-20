@@ -3193,22 +3193,22 @@ function App() {
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
                       Start Date *
                     </label>
-                    <input
-                      type="date"
+                    <DateInput
                       value={newJourney.startDate as string}
-                      onChange={(e) => setNewJourney({ ...newJourney, startDate: e.target.value })}
-                      className="gh-input"
+                      onChange={(val) => setNewJourney({ ...newJourney, startDate: val })}
+                      maxDate={newJourney.endDate as string}
+                      placeholder="Select start date"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
                       End Date *
                     </label>
-                    <input
-                      type="date"
+                    <DateInput
                       value={newJourney.endDate as string}
-                      onChange={(e) => setNewJourney({ ...newJourney, endDate: e.target.value })}
-                      className="gh-input"
+                      onChange={(val) => setNewJourney({ ...newJourney, endDate: val })}
+                      minDate={newJourney.startDate as string}
+                      placeholder="Select end date"
                     />
                   </div>
                 </div>
@@ -3287,22 +3287,22 @@ function App() {
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
                       Start Date *
                     </label>
-                    <input
-                      type="date"
+                    <DateInput
                       value={formatDateForInput(editingJourney.startDate)}
-                      onChange={(e) => setEditingJourney({ ...editingJourney, startDate: e.target.value })}
-                      className="gh-input"
+                      onChange={(val) => setEditingJourney({ ...editingJourney, startDate: val })}
+                      maxDate={formatDateForInput(editingJourney.endDate)}
+                      placeholder="Select start date"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
                       End Date *
                     </label>
-                    <input
-                      type="date"
+                    <DateInput
                       value={formatDateForInput(editingJourney.endDate)}
-                      onChange={(e) => setEditingJourney({ ...editingJourney, endDate: e.target.value })}
-                      className="gh-input"
+                      onChange={(val) => setEditingJourney({ ...editingJourney, endDate: val })}
+                      minDate={formatDateForInput(editingJourney.startDate)}
+                      placeholder="Select end date"
                     />
                   </div>
                 </div>
@@ -4059,7 +4059,14 @@ function App() {
                     </label>
                     <DateInput
                       value={newTransport.departureDate as string}
-                      onChange={v => setNewTransport({ ...newTransport, departureDate: v })}
+                      onChange={v => {
+                        const updated = { ...newTransport, departureDate: v };
+                        // auto-reset arrival when it would end up before departure
+                        if (v && updated.arrivalDate && new Date(v) > new Date(updated.arrivalDate)) {
+                          updated.arrivalDate = v;
+                        }
+                        setNewTransport(updated);
+                      }}
                       minDate={selectedJourney ? toYMD(selectedJourney.startDate) : undefined}
                       maxDate={selectedJourney ? toYMD(selectedJourney.endDate) : undefined}
                       showTime
@@ -4073,7 +4080,7 @@ function App() {
                     <DateInput
                       value={newTransport.arrivalDate as string}
                       onChange={v => setNewTransport({ ...newTransport, arrivalDate: v })}
-                      minDate={selectedJourney ? toYMD(selectedJourney.startDate) : undefined}
+                      minDate={newTransport.departureDate ? newTransport.departureDate as string : (selectedJourney ? toYMD(selectedJourney.startDate) : undefined)}
                       maxDate={selectedJourney ? toYMD(selectedJourney.endDate) : undefined}
                       showTime
                       placeholder="Arrival"
@@ -4272,7 +4279,14 @@ function App() {
                     </label>
                     <DateInput
                       value={formatDateTimeForInput(editingTransport.departureDate)}
-                      onChange={v => setEditingTransport({ ...editingTransport, departureDate: v })}
+                      onChange={v => {
+                        const updated = { ...editingTransport, departureDate: v };
+                        // auto-reset arrival when it would end up before departure
+                        if (v && updated.arrivalDate && new Date(v) > new Date(updated.arrivalDate)) {
+                          updated.arrivalDate = v;
+                        }
+                        setEditingTransport(updated);
+                      }}
                       minDate={selectedJourney ? toYMD(selectedJourney.startDate) : undefined}
                       maxDate={selectedJourney ? toYMD(selectedJourney.endDate) : undefined}
                       showTime
@@ -4286,7 +4300,7 @@ function App() {
                     <DateInput
                       value={formatDateTimeForInput(editingTransport.arrivalDate)}
                       onChange={v => setEditingTransport({ ...editingTransport, arrivalDate: v })}
-                      minDate={selectedJourney ? toYMD(selectedJourney.startDate) : undefined}
+                      minDate={editingTransport.departureDate ? formatDateTimeForInput(editingTransport.departureDate) : (selectedJourney ? toYMD(selectedJourney.startDate) : undefined)}
                       maxDate={selectedJourney ? toYMD(selectedJourney.endDate) : undefined}
                       showTime
                       placeholder="Arrival"

@@ -443,14 +443,14 @@ const SettingsPage: React.FC = () => {
           <div className="flex items-center gap-3">
             <Link
               to="/"
-              className="px-4 py-2 bg-white dark:bg-[#2c2c2e] border border-gray-200 dark:border-[#38383a] text-gray-700 dark:text-[#ffffff] rounded-lg hover:bg-gray-50 dark:hover:bg-[#38383a] transition-all flex items-center gap-2"
+              className="px-4 py-2 bg-white dark:bg-[#2c2c2e] border border-gray-200 dark:border-[#38383a] text-gray-700 dark:text-[#ffffff] rounded-lg hover:bg-gray-50 dark:hover:bg-[#38383a] transition-all active:scale-[0.97] flex items-center gap-2"
             >
               <ArrowLeft size={20} />
               Back to Home
             </Link>
             <button
               onClick={logout}
-              className="px-4 py-2 bg-red-500 dark:bg-[#ff453a] text-white rounded-lg hover:bg-red-600 dark:hover:bg-red-600 transition-all flex items-center gap-2"
+              className="px-4 py-2 bg-red-500 dark:bg-[#ff453a] text-white rounded-lg hover:bg-red-600 dark:hover:bg-red-600 transition-all active:scale-[0.97] flex items-center gap-2"
             >
               <LogOut size={20} />
               Logout
@@ -463,7 +463,7 @@ const SettingsPage: React.FC = () => {
           {/* User Profile Section */}
           <div className="space-y-6">
             {/* Theme Settings */}
-            <div className="bg-white dark:bg-[#2c2c2e] rounded-xl shadow-sm p-6 border border-gray-200 dark:border-[#38383a] transition-colors duration-200">
+            <div className="bg-white dark:bg-[#2c2c2e] rounded-xl shadow-sm p-6 border border-gray-200 dark:border-[#38383a] transition-colors duration-200 animate-slide-up-in stagger-item">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 {theme === 'dark' ? (
                   <Moon size={24} className="text-[#0a84ff]" />
@@ -519,7 +519,7 @@ const SettingsPage: React.FC = () => {
             </div>
 
             {/* Account Information */}
-            <div className="bg-white dark:bg-[#2c2c2e] rounded-xl shadow-sm p-6 border border-gray-200 dark:border-[#38383a] transition-colors duration-200">
+            <div className="bg-white dark:bg-[#2c2c2e] rounded-xl shadow-sm p-6 border border-gray-200 dark:border-[#38383a] transition-colors duration-200 animate-slide-up-in stagger-item">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <User size={24} className="text-blue-500 dark:text-[#0a84ff]" />
                 Account Information
@@ -550,7 +550,7 @@ const SettingsPage: React.FC = () => {
             </div>
 
             {/* Export / Import Journeys */}
-            <div className="bg-white dark:bg-[#2c2c2e] rounded-xl shadow-sm p-6 border border-gray-200 dark:border-[#38383a] transition-colors duration-200">
+            <div className="bg-white dark:bg-[#2c2c2e] rounded-xl shadow-sm p-6 border border-gray-200 dark:border-[#38383a] transition-colors duration-200 animate-slide-up-in stagger-item">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <Save size={24} className="text-blue-500 dark:text-[#0a84ff]" />
                 Export / Import Journeys
@@ -562,7 +562,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   onClick={handleExportJourneys}
                   disabled={exportLoading}
-                  className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors active:scale-[0.97] disabled:active:scale-100 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {exportLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
                   Export Journeys (JSON)
@@ -582,7 +582,7 @@ const SettingsPage: React.FC = () => {
             </div>
 
             {/* Journey Invitations */}
-            <div className="bg-white dark:bg-[#2c2c2e] rounded-xl shadow-sm p-6 border border-gray-200 dark:border-[#38383a] transition-colors duration-200">
+            <div className="bg-white dark:bg-[#2c2c2e] rounded-xl shadow-sm p-6 border border-gray-200 dark:border-[#38383a] transition-colors duration-200 animate-slide-up-in stagger-item">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <Share2 size={24} className="text-blue-500 dark:text-[#0a84ff]" />
                 Journey Invitations
@@ -602,7 +602,7 @@ const SettingsPage: React.FC = () => {
                   {journeyInvitations.map((invitation) => (
                     <div
                       key={invitation.id}
-                      className="p-4 bg-gray-50 dark:bg-[#1c1c1e] rounded-lg border border-gray-200 dark:border-[#38383a]"
+                      className="p-4 bg-gray-50 dark:bg-[#1c1c1e] rounded-lg border border-gray-200 dark:border-[#38383a] checklist-item"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
@@ -624,14 +624,14 @@ const SettingsPage: React.FC = () => {
                         <div className="flex flex-col gap-2">
                           <button
                             onClick={() => handleAcceptInvitation(invitation.id!)}
-                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
+                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors active:scale-[0.97] flex items-center gap-2 text-sm"
                           >
                             <Check size={16} />
                             Accept
                           </button>
                           <button
                             onClick={() => handleRejectInvitation(invitation.id!)}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors active:scale-[0.97] flex items-center gap-2 text-sm"
                           >
                             <X size={16} className="text-black dark:text-white" />
                             Reject
@@ -645,7 +645,7 @@ const SettingsPage: React.FC = () => {
             </div>
 
             {/* Update Username */}
-            <div className="bg-white dark:bg-[#2c2c2e] rounded-xl shadow-sm p-6 border border-gray-200 dark:border-[#38383a] transition-colors duration-200">
+            <div className="bg-white dark:bg-[#2c2c2e] rounded-xl shadow-sm p-6 border border-gray-200 dark:border-[#38383a] transition-colors duration-200 animate-slide-up-in stagger-item">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-[#ffffff] mb-4">Update Username</h2>
               
               {profileError && (
@@ -675,7 +675,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={profileLoading || username === user.username}
-                  className="w-full bg-blue-500 dark:bg-[#0a84ff] hover:bg-blue-600 dark:hover:bg-blue-600 text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full bg-blue-500 dark:bg-[#0a84ff] hover:bg-blue-600 dark:hover:bg-blue-600 text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:shadow-lg active:scale-[0.97] disabled:active:scale-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {profileLoading ? (
                     <>
@@ -693,7 +693,7 @@ const SettingsPage: React.FC = () => {
             </div>
 
             {/* Change Password */}
-            <div className="bg-white dark:bg-[#2c2c2e] rounded-xl shadow-sm p-6 border border-gray-200 dark:border-[#38383a] transition-colors duration-200">
+            <div className="bg-white dark:bg-[#2c2c2e] rounded-xl shadow-sm p-6 border border-gray-200 dark:border-[#38383a] transition-colors duration-200 animate-slide-up-in stagger-item">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-[#ffffff] mb-4">Change Password</h2>
               
               {passwordError && (
@@ -750,7 +750,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={passwordLoading}
-                  className="w-full bg-blue-500 dark:bg-[#0a84ff] hover:bg-blue-600 dark:hover:bg-blue-600 text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full bg-blue-500 dark:bg-[#0a84ff] hover:bg-blue-600 dark:hover:bg-blue-600 text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:shadow-lg active:scale-[0.97] disabled:active:scale-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {passwordLoading ? (
                     <>
@@ -811,7 +811,7 @@ const SettingsPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={inviteLoading}
-                    className="w-full bg-green-500 dark:bg-[#30d158] hover:bg-green-600 dark:hover:bg-green-600 text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full bg-green-500 dark:bg-[#30d158] hover:bg-green-600 dark:hover:bg-green-600 text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:shadow-lg active:scale-[0.97] disabled:active:scale-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {inviteLoading ? (
                       <>
@@ -836,7 +836,7 @@ const SettingsPage: React.FC = () => {
                     {invitations.map((invitation) => (
                       <div
                         key={invitation.id}
-                        className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1c1c1e] rounded-lg border border-gray-200 dark:border-[#38383a]"
+                        className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1c1c1e] rounded-lg border border-gray-200 dark:border-[#38383a] checklist-item"
                       >
                         <div>
                           <div className="text-gray-900 dark:text-[#ffffff] font-medium">{invitation.email}</div>
@@ -850,7 +850,7 @@ const SettingsPage: React.FC = () => {
                         </div>
                         <button
                           onClick={() => handleCancelInvitation(invitation.id!, invitation.email)}
-                          className="p-2 text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-300 ease-in-out"
+                          className="p-2 text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-300 ease-in-out active:scale-[0.97]"
                           title="Cancel invitation"
                         >
                           <X size={20} className="text-black dark:text-white" />
@@ -887,7 +887,7 @@ const SettingsPage: React.FC = () => {
                                 toast.error(err.response?.data?.error || 'Failed to approve registration');
                               }
                             }}
-                            className="px-3 py-2 text-sm bg-green-500 dark:bg-green-600 hover:bg-green-600 text-white rounded-lg transition-all"
+              className="px-3 py-2 text-sm bg-green-500 dark:bg-green-600 hover:bg-green-600 text-white rounded-lg transition-all active:scale-[0.97]"
                           >
                             Approve
                           </button>
@@ -904,7 +904,7 @@ const SettingsPage: React.FC = () => {
                                 toast.error(err.response?.data?.error || 'Failed to reject registration');
                               }
                             }}
-                            className="px-3 py-2 text-sm bg-red-100 dark:bg-red-900/20 text-red-600 rounded-lg transition-all"
+              className="px-3 py-2 text-sm bg-red-100 dark:bg-red-900/20 text-red-600 rounded-lg transition-all active:scale-[0.97]"
                           >
                             Reject
                           </button>
@@ -929,7 +929,7 @@ const SettingsPage: React.FC = () => {
                     {users.map((u) => (
                       <div
                         key={u.id}
-                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#1c1c1e] rounded-lg border border-gray-200 dark:border-[#38383a]"
+                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#1c1c1e] rounded-lg border border-gray-200 dark:border-[#38383a] checklist-item"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
@@ -952,13 +952,13 @@ const SettingsPage: React.FC = () => {
                                 u.username,
                                 u.role === 'admin' ? 'user' : 'admin'
                               )}
-                              className="px-3 py-2 text-sm bg-blue-500 dark:bg-[#0a84ff] hover:bg-blue-600 dark:hover:bg-blue-600 text-white rounded-lg transition-all duration-300 ease-in-out"
+                              className="px-3 py-2 text-sm bg-blue-500 dark:bg-[#0a84ff] hover:bg-blue-600 dark:hover:bg-blue-600 text-white rounded-lg transition-all duration-300 ease-in-out active:scale-[0.97]"
                             >
                               {u.role === 'admin' ? 'Make User' : 'Make Admin'}
                             </button>
                             <button
                               onClick={() => handleDeleteUser(u.id!, u.username)}
-                              className="p-2 text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-300 ease-in-out"
+                              className="p-2 text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-300 ease-in-out active:scale-[0.97]"
                               title="Delete user"
                             >
                               <Trash2 size={20} />
@@ -999,7 +999,7 @@ const SettingsPage: React.FC = () => {
                           setRatesLoadingState(false);
                         }
                       }}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg active:scale-[0.97] disabled:active:scale-100 transition-all"
                       disabled={ratesLoadingState}
                     >
                       {ratesLoadingState ? 'Updating...' : 'Update Cache'}
@@ -1015,7 +1015,7 @@ const SettingsPage: React.FC = () => {
       {/* Import Modal */}
       {importModalOpen && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#2c2c2e] rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-[#38383a]">
+          <div className="bg-white dark:bg-[#2c2c2e] rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-[#38383a] animate-bounce-in">
             {/* Modal Header */}
             <div className="sticky top-0 bg-white dark:bg-[#2c2c2e] border-b border-gray-200 dark:border-[#38383a] px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -1130,7 +1130,7 @@ const SettingsPage: React.FC = () => {
             <div className="sticky bottom-0 bg-white dark:bg-[#2c2c2e] border-t border-gray-200 dark:border-[#38383a] px-6 py-4 flex items-center justify-end gap-3">
               <button
                 onClick={handleCloseImportModal}
-                className="px-6 py-3 bg-gray-200 dark:bg-[#38383a] text-gray-700 dark:text-[#ffffff] rounded-lg hover:bg-gray-300 dark:hover:bg-[#48484a] transition-colors"
+                className="px-6 py-3 bg-gray-200 dark:bg-[#38383a] text-gray-700 dark:text-[#ffffff] rounded-lg hover:bg-gray-300 dark:hover:bg-[#48484a] transition-colors active:scale-[0.97]"
               >
                 {importResult ? 'Close' : 'Cancel'}
               </button>
@@ -1138,7 +1138,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   onClick={handleExecuteImport}
                   disabled={importLoading || (!importJourneysFlag && !importStopsFlag && !importTransportsFlag)}
-                  className="px-6 py-3 bg-blue-500 dark:bg-[#0a84ff] text-white rounded-lg hover:bg-blue-600 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-6 py-3 bg-blue-500 dark:bg-[#0a84ff] text-white rounded-lg hover:bg-blue-600 dark:hover:bg-blue-600 transition-colors active:scale-[0.97] disabled:active:scale-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {importLoading ? (
                     <>
