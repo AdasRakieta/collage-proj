@@ -10,6 +10,7 @@ import ManageSharesModal from './components/ManageSharesModal';
 import { useConfirm } from './hooks/useConfirm';
 import type { Journey, Stop, Transport, Attraction, ChecklistItem } from './types/journey';
 import { journeyService, stopService, attractionService, transportService, journeyShareService, attachmentService } from './services/api';
+import DateInput from './components/DateInput';
 import { getRates } from './services/currencyApi';
 import { socketService } from './services/socket';
 import { getAttractionTagInfo, getAvailableAttractionTags } from './utils/attractionTags';
@@ -1694,6 +1695,17 @@ function App() {
 
   const handleEditTransport = async () => {
     if (!editingTransport?.id || !selectedJourney) return;
+    // ensure dates remain within journey boundaries
+    if (editingTransport.departureDate || editingTransport.arrivalDate) {
+      const journeyStart = new Date(selectedJourney.startDate);
+      const journeyEnd = new Date(selectedJourney.endDate);
+      const dep = editingTransport.departureDate ? new Date(editingTransport.departureDate) : journeyStart;
+      const arr = editingTransport.arrivalDate ? new Date(editingTransport.arrivalDate) : dep;
+      if (dep < journeyStart || arr > journeyEnd) {
+        warning(`Transport dates must fall between journey ${selectedJourney.startDate} and ${selectedJourney.endDate}`);
+        return;
+      }
+    }
 
     try {
       setLoading(true);
@@ -3444,22 +3456,24 @@ function App() {
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
                       Arrival Date
                     </label>
-                    <input
-                      type="date"
+                    <DateInput
                       value={newStop.arrivalDate as string}
-                      onChange={(e) => setNewStop({ ...newStop, arrivalDate: e.target.value })}
-                      className="gh-input"
+                      onChange={(v) => setNewStop({ ...newStop, arrivalDate: v })}
+                      minDate={selectedJourney ? toYMD(selectedJourney.startDate) : undefined}
+                      maxDate={selectedJourney ? toYMD(selectedJourney.endDate) : undefined}
+                      placeholder="Arrival date"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
                       Departure Date
                     </label>
-                    <input
-                      type="date"
+                    <DateInput
                       value={newStop.departureDate as string}
-                      onChange={(e) => setNewStop({ ...newStop, departureDate: e.target.value })}
-                      className="gh-input"
+                      onChange={(v) => setNewStop({ ...newStop, departureDate: v })}
+                      minDate={selectedJourney ? toYMD(selectedJourney.startDate) : undefined}
+                      maxDate={selectedJourney ? toYMD(selectedJourney.endDate) : undefined}
+                      placeholder="Departure date"
                     />
                   </div>
                 </div>
@@ -3739,22 +3753,24 @@ function App() {
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
                       Arrival Date
                     </label>
-                    <input
-                      type="date"
+                    <DateInput
                       value={formatDateForInput(editingStop.arrivalDate)}
-                      onChange={(e) => setEditingStop({ ...editingStop, arrivalDate: e.target.value })}
-                      className="gh-input"
+                      onChange={(v) => setEditingStop({ ...editingStop, arrivalDate: v })}
+                      minDate={selectedJourney ? toYMD(selectedJourney.startDate) : undefined}
+                      maxDate={selectedJourney ? toYMD(selectedJourney.endDate) : undefined}
+                      placeholder="Arrival date"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
                       Departure Date
                     </label>
-                    <input
-                      type="date"
+                    <DateInput
                       value={formatDateForInput(editingStop.departureDate)}
-                      onChange={(e) => setEditingStop({ ...editingStop, departureDate: e.target.value })}
-                      className="gh-input"
+                      onChange={(v) => setEditingStop({ ...editingStop, departureDate: v })}
+                      minDate={selectedJourney ? toYMD(selectedJourney.startDate) : undefined}
+                      maxDate={selectedJourney ? toYMD(selectedJourney.endDate) : undefined}
+                      placeholder="Departure date"
                     />
                   </div>
                 </div>
@@ -4037,51 +4053,26 @@ function App() {
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
                       Departure *
                     </label>
-                    <input
-                      type="datetime-local"
+                    <DateInput
                       value={newTransport.departureDate as string}
-                      onChange={e => {
-                        let val = e.target.value;
-                        // Allow user to type with space instead of T
-                        if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
-                          val = val.replace(' ', 'T');
-                        }
-                        setNewTransport({ ...newTransport, departureDate: val });
-                      }}
-                      onBlur={e => {
-                        let val = e.target.value;
-                        if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
-                          val = val.replace(' ', 'T');
-                          setNewTransport(prev => ({ ...prev, departureDate: val }));
-                        }
-                      }}
-                      className="gh-input"
-                      placeholder="YYYY-MM-DD HH:MM"
+                      onChange={v => setNewTransport({ ...newTransport, departureDate: v })}
+                      minDate={selectedJourney ? toYMD(selectedJourney.startDate) : undefined}
+                      maxDate={selectedJourney ? toYMD(selectedJourney.endDate) : undefined}
+                      showTime
+                      placeholder="Departure"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
                       Arrival *
                     </label>
-                    <input
-                      type="datetime-local"
+                    <DateInput
                       value={newTransport.arrivalDate as string}
-                      onChange={e => {
-                        let val = e.target.value;
-                        if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
-                          val = val.replace(' ', 'T');
-                        }
-                        setNewTransport({ ...newTransport, arrivalDate: val });
-                      }}
-                      onBlur={e => {
-                        let val = e.target.value;
-                        if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
-                          val = val.replace(' ', 'T');
-                          setNewTransport(prev => ({ ...prev, arrivalDate: val }));
-                        }
-                      }}
-                      className="gh-input"
-                      placeholder="YYYY-MM-DD HH:MM"
+                      onChange={v => setNewTransport({ ...newTransport, arrivalDate: v })}
+                      minDate={selectedJourney ? toYMD(selectedJourney.startDate) : undefined}
+                      maxDate={selectedJourney ? toYMD(selectedJourney.endDate) : undefined}
+                      showTime
+                      placeholder="Arrival"
                     />
                   </div>
                 </div>
@@ -4287,50 +4278,26 @@ function App() {
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
                       Departure *
                     </label>
-                    <input
-                      type="datetime-local"
+                    <DateInput
                       value={formatDateTimeForInput(editingTransport.departureDate)}
-                      onChange={e => {
-                        let val = e.target.value;
-                        if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
-                          val = val.replace(' ', 'T');
-                        }
-                        setEditingTransport({ ...editingTransport, departureDate: val });
-                      }}
-                      onBlur={e => {
-                        let val = e.target.value;
-                        if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
-                          val = val.replace(' ', 'T');
-                          if (editingTransport) setEditingTransport({ ...editingTransport, departureDate: val });
-                        }
-                      }}
-                      className="gh-input"
-                      placeholder="YYYY-MM-DD HH:MM"
+                      onChange={v => setEditingTransport({ ...editingTransport, departureDate: v })}
+                      minDate={selectedJourney ? toYMD(selectedJourney.startDate) : undefined}
+                      maxDate={selectedJourney ? toYMD(selectedJourney.endDate) : undefined}
+                      showTime
+                      placeholder="Departure"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
                       Arrival *
                     </label>
-                    <input
-                      type="datetime-local"
+                    <DateInput
                       value={formatDateTimeForInput(editingTransport.arrivalDate)}
-                      onChange={e => {
-                        let val = e.target.value;
-                        if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
-                          val = val.replace(' ', 'T');
-                        }
-                        setEditingTransport({ ...editingTransport, arrivalDate: val });
-                      }}
-                      onBlur={e => {
-                        let val = e.target.value;
-                        if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(val)) {
-                          val = val.replace(' ', 'T');
-                          if (editingTransport) setEditingTransport({ ...editingTransport, arrivalDate: val });
-                        }
-                      }}
-                      className="gh-input"
-                      placeholder="YYYY-MM-DD HH:MM"
+                      onChange={v => setEditingTransport({ ...editingTransport, arrivalDate: v })}
+                      minDate={selectedJourney ? toYMD(selectedJourney.startDate) : undefined}
+                      maxDate={selectedJourney ? toYMD(selectedJourney.endDate) : undefined}
+                      showTime
+                      placeholder="Arrival"
                     />
                   </div>
                 </div>
