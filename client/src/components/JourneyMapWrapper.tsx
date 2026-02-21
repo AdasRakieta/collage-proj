@@ -9,8 +9,8 @@ interface Stop {
   id?: number;
   city?: string;
   country?: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   arrivalDate?: string | Date;
   departureDate?: string | Date;
   accommodationName?: string;
@@ -27,8 +27,8 @@ interface Stop {
     currency?: string;
     visitTime?: string;
     address?: string;
-    latitude?: number;
-    longitude?: number;
+    latitude?: number | null;
+    longitude?: number | null;
   }>;
 }
 

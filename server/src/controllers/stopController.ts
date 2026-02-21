@@ -44,6 +44,28 @@ const toCamelCase = (obj: any): any => {
   return obj;
 };
 
+// utility: ensure a given date range falls inside the journey boundaries
+async function assertWithinJourney(journeyId: number, start: Date, end: Date) {
+  if (DB_AVAILABLE) {
+    const r = await query('SELECT start_date, end_date FROM journeys WHERE id=$1', [journeyId]);
+    if (r.rows.length === 0) throw new Error('Journey not found');
+    const { start_date, end_date } = r.rows[0];
+    const js = new Date(start_date);
+    const je = new Date(end_date);
+    if (start < js || end > je) {
+      throw new Error(`Dates must be within journey range (${js.toISOString().slice(0,10)} - ${je.toISOString().slice(0,10)})`);
+    }
+  } else {
+    const journey = await jsonStore.getById('journeys', journeyId);
+    if (!journey) throw new Error('Journey not found');
+    const js = new Date(journey.start_date);
+    const je = new Date(journey.end_date);
+    if (start < js || end > je) {
+      throw new Error(`Dates must be within journey range (${js.toISOString().slice(0,10)} - ${je.toISOString().slice(0,10)})`);
+    }
+  }
+}
+
 // Get all stops for a journey
 export const getStopsByJourneyId = async (req: Request, res: Response) => {
   try {
@@ -117,6 +139,13 @@ export const createStop = async (req: Request, res: Response) => {
     if (addressHouseNumber === '' || addressHouseNumber === undefined) addressHouseNumber = null;
     if (postalCode === '' || postalCode === undefined) postalCode = null;
     
+    // ensure arrival/departure fall within journey
+    try {
+      await assertWithinJourney(journeyId, new Date(arrivalDate), new Date(departureDate));
+    } catch (e: any) {
+      return res.status(400).json({ message: e.message });
+    }
+
     if (!DB_AVAILABLE) {
       if (addressStreet === '' || addressStreet === undefined) addressStreet = null;
       if (addressHouseNumber === '' || addressHouseNumber === undefined) addressHouseNumber = null;
@@ -136,10 +165,12 @@ export const createStop = async (req: Request, res: Response) => {
       });
       const stop = toCamelCase(newStop);
       const io = req.app.get('io');
+      io.emit('stop:created', stop);
       // Recompute journey total and emit updated journey
       try {
         await computeAndPersistTotal(journeyId);
         const journey = toCamelCase(await jsonStore.getById('journeys', journeyId));
+        io.emit('journey:updated', journey);
       } catch (e) {
         console.warn('Failed to recompute total after stop create (JSON):', e);
       }
@@ -168,9 +199,12 @@ export const createStop = async (req: Request, res: Response) => {
     const stop = toCamelCase(result.rows[0]);
     
     // Emit Socket.IO event
+    const io = req.app.get('io');
+    io.emit('stop:created', stop);
     try {
       await computeAndPersistTotal(journeyId);
       const journeyRes = await query('SELECT * FROM journeys WHERE id = $1', [journeyId]);
+      io.emit('journey:updated', toCamelCase(journeyRes.rows[0]));
     } catch (e) {
       console.warn('Failed to recompute total after stop create (DB):', e);
     }
@@ -195,9 +229,11 @@ export const updateStop = async (req: Request, res: Response) => {
         if (!updated) return res.status(404).json({ message: 'Stop not found' });
         const updatedCamel = toCamelCase(updated);
         const io = req.app.get('io');
+        io.emit('stop:updated', updatedCamel);
         try {
           await computeAndPersistTotal(updated.journey_id);
           const journey = toCamelCase(await jsonStore.getById('journeys', updated.journey_id));
+          io.emit('journey:updated', journey);
         } catch (e) {
           console.warn('Failed to recompute total after stop update (JSON, partial):', e);
         }
@@ -214,9 +250,11 @@ export const updateStop = async (req: Request, res: Response) => {
       const updated = toCamelCase(paidResult.rows[0]);
       console.log(`✅ Stop ${stopId} updated successfully, is_paid=${updated.isPaid}`);
       const io = req.app.get('io');
+      io.emit('stop:updated', updated);
       try {
         await computeAndPersistTotal(updated.journeyId);
         const journeyRes = await query('SELECT * FROM journeys WHERE id = $1', [updated.journeyId]);
+        io.emit('journey:updated', toCamelCase(journeyRes.rows[0]));
       } catch (e) {
         console.warn('Failed to recompute total after stop update (DB, partial):', e);
       }
@@ -258,9 +296,11 @@ export const updateStop = async (req: Request, res: Response) => {
       if (!updated) return res.status(404).json({ message: 'Stop not found' });
       const stop = toCamelCase(updated);
       const io = req.app.get('io');
+      io.emit('stop:updated', stop);
       try {
         await computeAndPersistTotal(updated.journey_id);
         const journey = toCamelCase(await jsonStore.getById('journeys', updated.journey_id));
+        io.emit('journey:updated', journey);
       } catch (e) {
         console.warn('Failed to recompute total after stop update (JSON):', e);
       }
@@ -291,9 +331,12 @@ export const updateStop = async (req: Request, res: Response) => {
     const stop = toCamelCase(result.rows[0]);
     
     // Emit Socket.IO event
+    const io = req.app.get('io');
+    io.emit('stop:updated', stop);
     try {
       await computeAndPersistTotal(stop.journeyId);
       const journeyRes = await query('SELECT * FROM journeys WHERE id = $1', [stop.journeyId]);
+      io.emit('journey:updated', toCamelCase(journeyRes.rows[0]));
     } catch (e) {
       console.warn('Failed to recompute total after stop update (DB):', e);
     }
@@ -316,9 +359,11 @@ export const deleteStop = async (req: Request, res: Response) => {
       const ok = await jsonStore.deleteById('stops', stopId);
       if (!ok) return res.status(404).json({ message: 'Stop not found' });
       const io = req.app.get('io');
+      io.emit('stop:deleted', { id: stopId });
       try {
         await computeAndPersistTotal(existing.journey_id);
         const journey = toCamelCase(await jsonStore.getById('journeys', existing.journey_id));
+        io.emit('journey:updated', journey);
       } catch (e) {
         console.warn('Failed to recompute total after stop delete (JSON):', e);
       }
@@ -331,9 +376,12 @@ export const deleteStop = async (req: Request, res: Response) => {
     await query('DELETE FROM stops WHERE id = $1', [stopId]);
 
     // Emit Socket.IO event
+    const io = req.app.get('io');
+    io.emit('stop:deleted', { id: stopId });
     try {
       await computeAndPersistTotal(journeyId);
       const journeyRes = await query('SELECT * FROM journeys WHERE id = $1', [journeyId]);
+      io.emit('journey:updated', toCamelCase(journeyRes.rows[0]));
     } catch (e) {
       console.warn('Failed to recompute total after stop delete (DB):', e);
     }
@@ -703,5 +751,3 @@ export const scrapeBookingUrl = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: `Failed to scrape Booking.com page: ${error && error.message ? error.message : String(error)}. Please enter details manually.` });
   }
 };
-
-

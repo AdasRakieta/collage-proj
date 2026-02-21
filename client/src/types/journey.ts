@@ -6,8 +6,8 @@ export interface Stop {
   addressStreet?: string; // street name
   addressHouseNumber?: string; // house number
   postalCode?: string; // postal / ZIP code
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   arrivalDate: Date | string;
   departureDate: Date | string;
   accommodationName?: string;
@@ -49,12 +49,11 @@ export interface Attraction {
   isPaid?: boolean;
   address?: string;      // Full address (legacy - for display/concatenated)
   addressStreet?: string;    // Street name and number
-  addressHouseNumber?: string; // House/building number (kept separate in some forms)
   addressCity?: string;      // City name
   addressPostalCode?: string; // Postal/ZIP code
   addressCountry?: string;    // Country name
-  latitude?: number;     // Latitude coordinate for map marker (auto-filled)
-  longitude?: number;    // Longitude coordinate for map marker (auto-filled)
+  latitude?: number | null;     // Latitude coordinate for map marker (auto-filled)
+  longitude?: number | null;    // Longitude coordinate for map marker (auto-filled)
   visitTime?: string;    // HH:MM format for planned visit time
   openingTime?: string;  // HH:MM format for opening time
   closingTime?: string;  // HH:MM format for closing time
@@ -62,7 +61,7 @@ export interface Attraction {
   priority?: 'must' | 'should' | 'could' | 'skip'; // Priority level for itinerary planning
   plannedDate?: string;  // YYYY-MM-DD format for scheduled date
   plannedTime?: string;  // HH:MM format for scheduled time
-  tag?: 'beauty' | 'cafe' | 'must_see' | 'accommodation' | 'nature' | 'airport' | 'food' | 'attraction' | 'train_station'; // Category tag
+  tag?: 'beauty' | 'cafe' | 'must_see' | 'accommodation' | 'nature' | 'airport' | 'food' | 'attraction' | 'train_station' | null; // Category tag (nullable)
 }
 
 export interface JourneyShare {

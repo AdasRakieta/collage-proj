@@ -12,17 +12,16 @@ export const loginSchema = z.object({
 });
 
 /**
- * Schema dla rejestracji
+ * Schema dla rejestracji z tokenem zaproszenia
+ * Email pochodzi z tokenu zaproszenia w bazie danych – nie wysyłamy go z frontendu
  */
 export const registerSchema = z.object({
   body: z.object({
+    token: z.string().min(1, 'Invitation token is required'),
     username: z.string()
       .min(3, 'Username must be at least 3 characters')
       .max(50, 'Username must not exceed 50 characters')
       .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores and hyphens'),
-    email: z.string()
-      .email('Invalid email format')
-      .max(255, 'Email must not exceed 255 characters'),
     password: z.string()
       .min(8, 'Password must be at least 8 characters')
       .max(128, 'Password must not exceed 128 characters'),

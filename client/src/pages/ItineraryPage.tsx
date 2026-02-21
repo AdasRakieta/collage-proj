@@ -31,7 +31,9 @@ import type { Journey, Stop, Attraction } from '../types/journey';
 import { useToast, ToastContainer } from '../components/Toast';
 import JourneyMapWrapper from '../components/JourneyMapWrapper';
 import { getAttractionTagInfo, getAvailableAttractionTags } from '../utils/attractionTags';
+import type { AttractionTag } from '../utils/attractionTags';
 import { geocodeAddress } from '../services/geocoding';
+import DateInput from '../components/DateInput';
 
 // Helper function for time validation
 const isValidTime = (t: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(t);
@@ -90,7 +92,7 @@ const PRIORITY_CONFIG = {
     borderColor: 'border-orange-300 dark:border-[#ff9f0a]/30'
   },
   could: { 
-    label: 'Opcjonalne', 
+    label: 'Optional', 
     shortLabel: 'Could',
     color: 'bg-blue-500 dark:bg-[#0a84ff]', 
     textColor: 'text-blue-600 dark:text-[#0a84ff]',
@@ -216,16 +218,14 @@ const PriorityBadge: React.FC<{ priority?: PriorityType; compact?: boolean }> = 
 // Draggable Attraction Card Component
 const AttractionCard: React.FC<{
   attraction: Attraction;
-  stop?: Stop;
   onPriorityChange: (id: number, priority: PriorityType) => void;
-  onPlannedDateChange?: (id: number, date: string | null) => void;
   onDragStart: (e: React.DragEvent, attraction: Attraction) => void;
   onDragEnd: (e: React.DragEvent) => void;
   isDragging: boolean;
   isDropTarget?: boolean;
   onEdit?: (attraction: Attraction) => void;
   onDelete?: (id: number) => void;
-}> = ({ attraction, stop: _stop, onPriorityChange, onPlannedDateChange: _onPlannedDateChange, onDragStart, onDragEnd, isDragging, isDropTarget, onEdit, onDelete }) => {
+}> = ({ attraction, onPriorityChange, onDragStart, onDragEnd, isDragging, isDropTarget, onEdit, onDelete }) => {
   const [showPriorityMenu, setShowPriorityMenu] = useState(false);
   
   const currentPriority = attraction.priority || 'should';
@@ -440,10 +440,9 @@ const StopSection: React.FC<{
   isExpanded: boolean;
   onToggle: () => void;
   onPriorityChange: (attractionId: number, priority: PriorityType) => void;
-  onPlannedDateChange: (attractionId: number, date: string | null) => void;
   onDragStart: (e: React.DragEvent, attraction: Attraction) => void;
   onDragEnd: (e: React.DragEvent) => void;
-  onDrop: (e: React.DragEvent, stopId: number, index: number) => void;
+  onDrop: (e: React.DragEvent, stopId: number, index: number, targetDate?: string | null) => void;
   onDragOver: (e: React.DragEvent) => void;
   draggingAttraction: Attraction | null;
   dragOverStopId: number | null;
@@ -458,7 +457,6 @@ const StopSection: React.FC<{
   isExpanded,
   onToggle,
   onPriorityChange,
-  onPlannedDateChange,
   onDragStart,
   onDragEnd,
   onDrop,
@@ -473,6 +471,7 @@ const StopSection: React.FC<{
 }) => {
   const sortedAttractions = [...attractions].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
   const isDropTarget = dragOverStopId === stop.id;
+  const [dragOverDayDate, setDragOverDayDate] = useState<string | null>(null);
   
   // Count by priority
   const mustCount = sortedAttractions.filter(a => a.priority === 'must').length;
@@ -553,7 +552,7 @@ const StopSection: React.FC<{
               {stop.city}
               {daysCount > 1 && (
                 <span className="ml-2 text-sm font-normal text-blue-600 dark:text-[#0a84ff]">
-                  ({daysCount} {daysCount === 2 ? 'dni' : daysCount === 3 ? 'dni' : daysCount === 4 ? 'dni' : 'dni'})
+                  ({daysCount} {daysCount === 1 ? 'day' : 'days'})
                 </span>
               )}
             </h3>
@@ -641,13 +640,33 @@ const StopSection: React.FC<{
               {/* Render attractions grouped by day */}
               {stopDates.map((dateStr, dayIndex) => {
                 const dayAttractions = attractionsByDay[dateStr] || [];
-                // Poprawne parsowanie daty bez przesunięcia strefowego
+                // Parse date without timezone shift
                 const [year, month, day] = dateStr.split('-');
                 const dateObj = new Date(Number(year), Number(month) - 1, Number(day));
-                // Parse date without timezone shift
                 const dayLabel = dateObj.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
+                const isDayDropTarget = dragOverDayDate === dateStr;
                 return (
-                  <div key={dateStr} className="space-y-2">
+                  <div
+                    key={dateStr}
+                    className={`space-y-2 rounded-lg p-1 transition-colors ${
+                      isDayDropTarget ? 'bg-blue-50 dark:bg-[#0a84ff]/10 ring-1 ring-blue-400 dark:ring-[#0a84ff]/50' : ''
+                    }`}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setDragOverDayDate(dateStr);
+                    }}
+                    onDragLeave={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        setDragOverDayDate(null);
+                      }
+                    }}
+                    onDrop={(e) => {
+                      e.stopPropagation();
+                      setDragOverDayDate(null);
+                      onDrop(e, stop.id!, dayAttractions.length, dateStr);
+                    }}
+                  >
                     {/* Day Header */}
                     <div className="flex items-center gap-2 py-2">
                       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-[#0a84ff]/20 flex items-center justify-center">
@@ -661,14 +680,21 @@ const StopSection: React.FC<{
                       <div className="flex-1 h-px bg-gray-200 dark:bg-[#38383a]"></div>
                       <span className="text-xs text-gray-500 dark:text-[#8e8e93]">
                         {dayAttractions.length} {dayAttractions.length === 1 ? 'attraction' : 'attractions'}
+                        {isDayDropTarget && <span className="ml-2 text-blue-600 dark:text-[#0a84ff] font-medium">↓ Drop here</span>}
                       </span>
                     </div>
                     
                     {/* Day Attractions */}
                     <div className="space-y-2 pl-10">
                       {dayAttractions.length === 0 ? (
-                        <div className="py-4 text-center rounded-lg border border-dashed border-gray-200 dark:border-[#38383a]">
-                          <p className="text-xs text-gray-400 dark:text-[#636366]">No attractions for this day</p>
+                        <div className={`py-4 text-center rounded-lg border border-dashed transition-colors ${
+                          isDayDropTarget
+                            ? 'border-blue-400 dark:border-[#0a84ff] bg-blue-100/40 dark:bg-[#0a84ff]/5'
+                            : 'border-gray-200 dark:border-[#38383a]'
+                        }`}>
+                          <p className="text-xs text-gray-400 dark:text-[#636366]">
+                            {isDayDropTarget ? 'Drop here' : 'No attractions for this day'}
+                          </p>
                         </div>
                       ) : (
                         dayAttractions.map((attraction, index) => (
@@ -680,14 +706,12 @@ const StopSection: React.FC<{
                             }}
                             onDrop={(e) => {
                               e.stopPropagation();
-                              onDrop(e, stop.id!, index);
+                              onDrop(e, stop.id!, index, dateStr);
                             }}
                           >
                             <AttractionCard
                               attraction={attraction}
-                              stop={stop}
                               onPriorityChange={onPriorityChange}
-                              onPlannedDateChange={onPlannedDateChange}
                               onDragStart={onDragStart}
                               onDragEnd={onDragEnd}
                               isDragging={draggingAttraction?.id === attraction.id}
@@ -705,7 +729,26 @@ const StopSection: React.FC<{
               
               {/* Unscheduled Attractions Section */}
               {unscheduledAttractions.length > 0 && (
-                <div className="space-y-2 mt-6">
+                <div
+                  className={`space-y-2 mt-6 rounded-lg p-1 transition-colors ${
+                    dragOverDayDate === 'unscheduled' ? 'bg-gray-50 dark:bg-[#3a3a3c] ring-1 ring-gray-400 dark:ring-[#636366]' : ''
+                  }`}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDragOverDayDate('unscheduled');
+                  }}
+                  onDragLeave={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                      setDragOverDayDate(null);
+                    }
+                  }}
+                  onDrop={(e) => {
+                    e.stopPropagation();
+                    setDragOverDayDate(null);
+                    onDrop(e, stop.id!, sortedAttractions.length, null);
+                  }}
+                >
                   <div className="flex items-center gap-2 py-2">
                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 dark:bg-[#3a3a3c] flex items-center justify-center">
                       <span className="text-xs font-semibold text-gray-500 dark:text-[#8e8e93]">?</span>
@@ -729,14 +772,12 @@ const StopSection: React.FC<{
                         }}
                         onDrop={(e) => {
                           e.stopPropagation();
-                          onDrop(e, stop.id!, sortedAttractions.length - unscheduledAttractions.length + index);
+                          onDrop(e, stop.id!, sortedAttractions.length - unscheduledAttractions.length + index, null);
                         }}
                       >
                         <AttractionCard
                           attraction={attraction}
-                          stop={stop}
                           onPriorityChange={onPriorityChange}
-                          onPlannedDateChange={onPlannedDateChange}
                           onDragStart={onDragStart}
                           onDragEnd={onDragEnd}
                           isDragging={draggingAttraction?.id === attraction.id}
@@ -785,6 +826,9 @@ const ItineraryPage: React.FC = () => {
   // Drag and drop state
   const [draggingAttraction, setDraggingAttraction] = useState<Attraction | null>(null);
   const [dragOverStopId, setDragOverStopId] = useState<number | null>(null);
+  // Daily view DnD state
+  const [draggingDailyAttraction, setDraggingDailyAttraction] = useState<{ attraction: Attraction; stop: Stop } | null>(null);
+  const [dragOverDate, setDragOverDate] = useState<string | null>(null);
   
   // Filter state
   const [filterPriority, setFilterPriority] = useState<PriorityType | 'all'>('all');
@@ -809,13 +853,13 @@ const ItineraryPage: React.FC = () => {
     estimatedCost: undefined,
     currency: journey?.currency || 'PLN',
     duration: '',
-    tag: undefined,
+    tag: null,
     addressStreet: '',
     addressCity: '',
     addressPostalCode: '',
     addressCountry: '',
-    latitude: undefined,
-    longitude: undefined
+    latitude: null,
+    longitude: null
   });
 
   // Load journey data
@@ -896,21 +940,32 @@ const ItineraryPage: React.FC = () => {
     };
 
     const handleAttractionUpdate = (data: any) => {
-      console.log('🔄 ItineraryPage received: Attraction updated', data);
+      console.log('🔄 ItineraryPage received: Attraction updated/created/deleted', data);
+      loadData();
+    };
+
+    const handleStopCreated = (data: any) => {
+      console.log('🔄 ItineraryPage received: Stop created', data);
       loadData();
     };
 
     socketService.on('stop:updated', handleStopUpdate);
+    socketService.on('stop:created', handleStopCreated);
     socketService.on('journey:updated', handleJourneyUpdate);
     socketService.on('attraction:updated', handleAttractionUpdate);
+    socketService.on('attraction:created', handleAttractionUpdate);
+    socketService.on('attraction:deleted', handleAttractionUpdate);
 
     console.log('✅ ItineraryPage: Socket listeners registered');
 
     return () => {
       console.log('🧹 ItineraryPage: Cleaning up socket listeners');
       socketService.off('stop:updated', handleStopUpdate);
+      socketService.off('stop:created', handleStopCreated);
       socketService.off('journey:updated', handleJourneyUpdate);
       socketService.off('attraction:updated', handleAttractionUpdate);
+      socketService.off('attraction:created', handleAttractionUpdate);
+      socketService.off('attraction:deleted', handleAttractionUpdate);
     };
   }, [loadData]);
 
@@ -976,13 +1031,13 @@ const ItineraryPage: React.FC = () => {
         estimatedCost: undefined,
         currency: journey?.currency || 'PLN',
         duration: '',
-        tag: undefined,
+        tag: null,
         addressStreet: '',
         addressCity: '',
         addressPostalCode: '',
         addressCountry: '',
-        latitude: undefined,
-        longitude: undefined
+        latitude: null,
+        longitude: null
       });
       setShowAddAttractionModal(false);
       setSelectedStopForAttraction(null);
@@ -1058,21 +1113,18 @@ const ItineraryPage: React.FC = () => {
       return;
     }
     
+    const fullAddress = parts.join(', ');
+    
     try {
       setGeocodingEditAttraction(true);
-      const coords = await geocodeAddress(
-        editingAttraction.addressStreet,
-        editingAttraction.addressCity,
-        editingAttraction.addressPostalCode,
-        editingAttraction.addressCountry
-      );
+      const coords = await geocodeAddress(fullAddress);
       
       if (coords) {
         setEditingAttraction({
           ...editingAttraction,
           latitude: coords.latitude,
           longitude: coords.longitude,
-          address: coords.displayName
+          address: coords.displayName || fullAddress
         });
         toast.success('Coordinates found!');
       } else {
@@ -1100,21 +1152,18 @@ const ItineraryPage: React.FC = () => {
       return;
     }
     
+    const fullAddress = parts.join(', ');
+    
     try {
       setGeocodingNewAttraction(true);
-      const coords = await geocodeAddress(
-        newAttraction.addressStreet,
-        newAttraction.addressCity,
-        newAttraction.addressPostalCode,
-        newAttraction.addressCountry
-      );
+      const coords = await geocodeAddress(fullAddress);
       
       if (coords) {
         setNewAttraction({
           ...newAttraction,
           latitude: coords.latitude,
           longitude: coords.longitude,
-          address: coords.displayName
+          address: coords.displayName || fullAddress
         });
         toast.success('Coordinates found!');
       } else {
@@ -1143,7 +1192,7 @@ const ItineraryPage: React.FC = () => {
     setDragOverStopId(stopId);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent, targetStopId: number, targetIndex: number) => {
+  const handleDrop = useCallback((e: React.DragEvent, targetStopId: number, targetIndex: number, targetDate?: string | null) => {
     e.preventDefault();
     
     if (!draggingAttraction) return;
@@ -1165,7 +1214,15 @@ const ItineraryPage: React.FC = () => {
         updated[targetStopId] = [];
       }
       
-      const movedAttraction = { ...draggingAttraction, stopId: targetStopId, orderIndex: targetIndex };
+      // Determine planned date:
+      // - targetDate is a string  → assign that date
+      // - targetDate is null      → clear (unscheduled)
+      // - targetDate is undefined → keep existing plannedDate (pure reorder)
+      const newPlannedDate = targetDate !== undefined
+        ? (targetDate === null ? undefined : targetDate)
+        : draggingAttraction.plannedDate;
+      
+      const movedAttraction = { ...draggingAttraction, stopId: targetStopId, orderIndex: targetIndex, plannedDate: newPlannedDate };
       
       // Insert at target index
       const targetAttractions = [...updated[targetStopId]];
@@ -1181,6 +1238,28 @@ const ItineraryPage: React.FC = () => {
     setDraggingAttraction(null);
     setDragOverStopId(null);
   }, [draggingAttraction]);
+
+  // Daily view drag handlers
+  const handleDailyDragStart = useCallback((e: React.DragEvent, attraction: Attraction, stop: Stop) => {
+    setDraggingDailyAttraction({ attraction, stop });
+    e.dataTransfer.effectAllowed = 'move';
+  }, []);
+
+  const handleDailyDragEnd = useCallback(() => {
+    setDraggingDailyAttraction(null);
+    setDragOverDate(null);
+  }, []);
+
+  const handleDailyDrop = useCallback(async (e: React.DragEvent, dateKey: string) => {
+    e.preventDefault();
+    if (!draggingDailyAttraction) return;
+    const { attraction, stop } = draggingDailyAttraction;
+    const currentDate = toYMD(attraction.plannedDate || stop.arrivalDate);
+    setDraggingDailyAttraction(null);
+    setDragOverDate(null);
+    if (currentDate === dateKey) return;
+    await handlePlannedDateChange(attraction.id!, dateKey);
+  }, [draggingDailyAttraction, handlePlannedDateChange]);
 
   // Save changes
   const handleSave = async () => {
@@ -1248,7 +1327,7 @@ const ItineraryPage: React.FC = () => {
     if (!stop) return;
     
     const attractions = attractionsByStop[stopId] || [];
-    const optimized = optimizeRoute(attractions, stop.latitude, stop.longitude);
+    const optimized = optimizeRoute(attractions, stop.latitude ?? undefined, stop.longitude ?? undefined);
     
     setAttractionsByStop(prev => ({
       ...prev,
@@ -1393,7 +1472,7 @@ const ItineraryPage: React.FC = () => {
                           filterPriority === 'all' ? 'bg-gray-50 dark:bg-[#3a3a3c]' : ''
                         }`}
                       >
-                        <span className="text-gray-900 dark:text-white">Wszystkie</span>
+                        <span className="text-gray-900 dark:text-white">All</span>
                         {filterPriority === 'all' && <Check size={14} className="ml-auto text-green-500" />}
                       </button>
                       {(Object.keys(PRIORITY_CONFIG) as PriorityType[]).map((key) => (
@@ -1419,7 +1498,7 @@ const ItineraryPage: React.FC = () => {
                 <button
                   onClick={handleReset}
                   className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#3a3a3c] transition-colors text-gray-600 dark:text-[#8e8e93]"
-                  title="Cofnij zmiany"
+                  title="Undo changes"
                 >
                   <RotateCcw size={20} />
                 </button>
@@ -1440,7 +1519,7 @@ const ItineraryPage: React.FC = () => {
                 ) : (
                   <Save size={18} />
                 )}
-                <span className="hidden sm:inline">Zapisz</span>
+                <span className="hidden sm:inline">Save</span>
               </button>
             </div>
           </div>
@@ -1489,7 +1568,6 @@ const ItineraryPage: React.FC = () => {
                   isExpanded={expandedStops.has(stop.id!)}
                   onToggle={() => toggleStop(stop.id!)}
                   onPriorityChange={handlePriorityChange}
-                  onPlannedDateChange={handlePlannedDateChange}
                   onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
                   onDrop={handleDrop}
@@ -1511,14 +1589,14 @@ const ItineraryPage: React.FC = () => {
                       estimatedCost: 0,
                       duration: '',
                       currency: journey?.currency || 'PLN',
-                      latitude: undefined,
-                      longitude: undefined,
+                      latitude: null,
+                      longitude: null,
                       addressStreet: '',
                       addressCity: '',
                       addressPostalCode: '',
                       addressCountry: '',
                       priority: 'should',
-                      tag: undefined
+                      tag: null
                     });
                     setShowAddAttractionModal(true);
                   }}
@@ -1546,7 +1624,7 @@ const ItineraryPage: React.FC = () => {
                 return (
                   <div className="text-center py-12">
                     <CalendarDays size={48} className="mx-auto mb-4 text-gray-300 dark:text-[#48484a]" />
-                    <p className="text-gray-500 dark:text-[#8e8e93]">Brak zaplanowanych atrakcji</p>
+                    <p className="text-gray-500 dark:text-[#8e8e93]">No planned attractions</p>
                   </div>
                 );
               }
@@ -1554,19 +1632,29 @@ const ItineraryPage: React.FC = () => {
               return sortedDates.map(dateKey => {
                 const items = byDate[dateKey];
                 const date = parseYMDToDate(dateKey) || new Date(dateKey);
+                const isDropTarget = dragOverDate === dateKey;
                 
                 return (
-                  <div key={dateKey} className="gh-card">
+                  <div
+                    key={dateKey}
+                    className={`gh-card transition-all duration-150 ${isDropTarget ? 'ring-2 ring-blue-500 dark:ring-[#0a84ff] bg-blue-50/50 dark:bg-[#0a84ff]/5' : ''}`}
+                    onDragOver={(e) => { e.preventDefault(); setDragOverDate(dateKey); }}
+                    onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverDate(null); }}
+                    onDrop={(e) => handleDailyDrop(e, dateKey)}
+                  >
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-[#0a84ff]/20 flex items-center justify-center">
                         <Calendar size={24} className="text-blue-600 dark:text-[#0a84ff]" />
                       </div>
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                           {date.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-[#8e8e93]">
                           {items.length} {items.length === 1 ? 'attraction' : 'attractions'}
+                          {isDropTarget && draggingDailyAttraction && (
+                            <span className="ml-2 text-blue-600 dark:text-[#0a84ff] font-medium">↓ Drop here</span>
+                          )}
                         </p>
                       </div>
                     </div>
@@ -1577,12 +1665,19 @@ const ItineraryPage: React.FC = () => {
                         const stopDeparture = parseYMDToDate(stop.departureDate) || new Date(stop.departureDate);
                         const daysDiff = Math.ceil((stopDeparture.getTime() - stopArrival.getTime()) / (1000 * 60 * 60 * 24));
                         const isMultiDay = daysDiff >= 1;
+                        const isDraggingThis = draggingDailyAttraction?.attraction.id === attraction.id;
                         
                         return (
                           <div
                             key={attraction.id}
-                            className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#1c1c1e] border border-gray-200 dark:border-[#38383a]"
+                            draggable
+                            onDragStart={(e) => handleDailyDragStart(e, attraction, stop)}
+                            onDragEnd={handleDailyDragEnd}
+                            className={`group flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#1c1c1e] border border-gray-200 dark:border-[#38383a] cursor-grab active:cursor-grabbing transition-all duration-150 ${isDraggingThis ? 'opacity-40 scale-95' : 'hover:border-gray-300 dark:hover:border-[#48484a]'}`}
                           >
+                            <div className="flex-shrink-0 pt-1 text-gray-400 dark:text-[#636366] opacity-0 group-hover:opacity-100 transition-opacity">
+                              <GripVertical size={14} />
+                            </div>
                             <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-100 dark:bg-[#0a84ff]/20 flex items-center justify-center">
                               <MapPin size={16} className="text-blue-600 dark:text-[#0a84ff]" />
                             </div>
@@ -1594,12 +1689,7 @@ const ItineraryPage: React.FC = () => {
                                     const tagInfo = getAttractionTagInfo(attraction.tag);
                                     return tagInfo && (
                                       <span 
-                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium shrink-0"
-                                        style={{
-                                          backgroundColor: `${tagInfo.color}20`,
-                                          color: tagInfo.color,
-                                          border: `1px solid ${tagInfo.color}40`
-                                        }}
+                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium shrink-0 ${tagInfo.bgLight} ${tagInfo.textColor} ${tagInfo.borderColor}`}
                                       >
                                         {tagInfo.emoji} {tagInfo.label}
                                       </span>
@@ -1629,13 +1719,12 @@ const ItineraryPage: React.FC = () => {
                                     Change day:
                                   </label>
                                   <div className="flex items-center gap-2">
-                                    <input
-                                      type="date"
+                                    <DateInput
                                       value={attraction.plannedDate || ''}
-                                      onChange={(e) => handlePlannedDateChange(attraction.id!, e.target.value || null)}
-                                      min={toYMD(stop.arrivalDate)}
-                                      max={toYMD(stop.departureDate)}
-                                      className="max-w-[160px] px-2 py-1 text-xs rounded border border-gray-300 dark:border-[#48484a] bg-white dark:bg-[#2c2c2e] text-gray-900 dark:text-white focus:border-blue-500 dark:focus:border-[#0a84ff] focus:ring-1 focus:ring-blue-500 dark:focus:ring-[#0a84ff]"
+                                      onChange={(val) => handlePlannedDateChange(attraction.id!, val || null)}
+                                      minDate={toYMD(stop.arrivalDate)}
+                                      maxDate={toYMD(stop.departureDate)}
+                                      className="max-w-[160px] text-xs"
                                     />
                                     {attraction.plannedDate && (
                                       <button
@@ -1674,7 +1763,7 @@ const ItineraryPage: React.FC = () => {
                     : 'bg-gray-100 dark:bg-[#3a3a3c] text-gray-600 dark:text-[#8e8e93] hover:bg-gray-200 dark:hover:bg-[#48484a]'
                 }`}
               >
-                Wszystkie przystanki
+                All stops
               </button>
               {stops.map(stop => (
                 <button
@@ -1691,6 +1780,8 @@ const ItineraryPage: React.FC = () => {
               ))}
             </div>
             
+            {/* Compute default center (first stop) so map isn't stuck on London */}
+            { /* calculate outside JSX for clarity */ }
             {/* Map container */}
             <div className="h-[600px] rounded-xl overflow-hidden border border-gray-200 dark:border-[#38383a]">
               <JourneyMapWrapper
@@ -1709,10 +1800,16 @@ const ItineraryPage: React.FC = () => {
                     }))
                 }
                 center={selectedStopForMap 
-                  ? stops.find(s => s.id === selectedStopForMap) 
-                    ? [stops.find(s => s.id === selectedStopForMap)!.latitude, stops.find(s => s.id === selectedStopForMap)!.longitude]
-                    : undefined
-                  : undefined
+                  ? (() => {
+                      const s = stops.find(s => s.id === selectedStopForMap);
+                      if (s && s.latitude != null && s.longitude != null) {
+                        return [s.latitude, s.longitude] as [number, number];
+                      }
+                      return undefined;
+                    })()
+                  : (stops.length > 0 && stops[0].latitude != null && stops[0].longitude != null
+                      ? ([stops[0].latitude, stops[0].longitude] as [number, number])
+                      : undefined)
                 }
                 zoom={selectedStopForMap ? 14 : 6}
               />
@@ -1728,7 +1825,7 @@ const ItineraryPage: React.FC = () => {
               return (
                 <div className="gh-card">
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-                    Trasa dla {stop.city}
+                    Route for {stop.city}
                   </h3>
                   <div className="space-y-2">
                     {attractions.map((attr, index) => (
@@ -1792,7 +1889,7 @@ const ItineraryPage: React.FC = () => {
                 </label>
                 <select
                   value={newAttraction.tag || ''}
-                  onChange={(e) => setNewAttraction({ ...newAttraction, tag: (e.target.value || undefined) as any })}
+                  onChange={(e) => setNewAttraction({ ...newAttraction, tag: (e.target.value as AttractionTag) || null })}
                   className="gh-select"
                 >
                   <option value="">No category</option>
@@ -2033,7 +2130,8 @@ const ItineraryPage: React.FC = () => {
                   </label>
                   <input
                     type="number"
-                    value={newAttraction.latitude ?? ''}
+                    value={newAttraction.latitude || ''}
+                    onChange={(e) => setNewAttraction({ ...newAttraction, latitude: parseFloat(e.target.value) || null })}
                     className="gh-input bg-gray-50 dark:bg-[#2c2c2e]"
                     step="0.000001"
                     placeholder="Auto-filled"
@@ -2046,7 +2144,8 @@ const ItineraryPage: React.FC = () => {
                   </label>
                   <input
                     type="number"
-                    value={newAttraction.longitude ?? ''}
+                    value={newAttraction.longitude || ''}
+                    onChange={(e) => setNewAttraction({ ...newAttraction, longitude: parseFloat(e.target.value) || null })}
                     className="gh-input bg-gray-50 dark:bg-[#2c2c2e]"
                     step="0.000001"
                     placeholder="Auto-filled"
@@ -2119,7 +2218,7 @@ const ItineraryPage: React.FC = () => {
                 </label>
                 <select
                   value={editingAttraction.tag || ''}
-                  onChange={(e) => setEditingAttraction({ ...editingAttraction, tag: (e.target.value || undefined) as any })}
+                  onChange={(e) => setEditingAttraction({ ...editingAttraction, tag: (e.target.value as AttractionTag) || null })}
                   className="gh-select"
                 >
                   <option value="">No category</option>
@@ -2137,6 +2236,35 @@ const ItineraryPage: React.FC = () => {
                     </p>
                   );
                 })()}
+              </div>
+
+              {/* Priority selector */}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
+                  Priority
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {(Object.keys(PRIORITY_CONFIG) as PriorityType[]).map((key) => {
+                    const cfg = PRIORITY_CONFIG[key];
+                    const isActive = (editingAttraction.priority || 'should') === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setEditingAttraction({ ...editingAttraction, priority: key })}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all
+                          ${ isActive
+                            ? `${cfg.bgLight} ${cfg.textColor} ${cfg.borderColor} ring-2 ring-offset-1 dark:ring-offset-[#2c2c2e] ring-current`
+                            : 'bg-gray-50 dark:bg-[#3a3a3c] text-gray-600 dark:text-[#8e8e93] border-gray-200 dark:border-[#48484a] hover:border-gray-300 dark:hover:border-[#636366]'
+                          }`}
+                      >
+                        <span className={`w-2.5 h-2.5 rounded-full ${cfg.color}`} />
+                        {cfg.label}
+                        {isActive && <Check size={12} />}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div>
@@ -2222,13 +2350,12 @@ const ItineraryPage: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#ffffff] mb-2">
                       📅 Planned Day
                     </label>
-                    <input
-                      type="date"
+                    <DateInput
                       value={editingAttraction.plannedDate || ''}
-                      onChange={(e) => setEditingAttraction({ ...editingAttraction, plannedDate: e.target.value || undefined })}
-                      min={arrivalDate}
-                      max={departureDate}
-                      className="gh-input max-w-[200px]"
+                      onChange={(val) => setEditingAttraction({ ...editingAttraction, plannedDate: val || undefined })}
+                      minDate={arrivalDate}
+                      maxDate={departureDate}
+                      className="max-w-[200px]"
                     />
                     {editingAttraction.plannedDate && (
                       <p className="text-xs text-gray-500 dark:text-[#8e8e93] mt-1">
@@ -2365,7 +2492,8 @@ const ItineraryPage: React.FC = () => {
                   </label>
                   <input
                     type="number"
-                    value={editingAttraction.latitude ?? ''}
+                    value={editingAttraction.latitude || ''}
+                    onChange={(e) => setEditingAttraction({ ...editingAttraction, latitude: parseFloat(e.target.value) || null })}
                     className="gh-input bg-gray-50 dark:bg-[#2c2c2e]"
                     step="0.000001"
                     placeholder="Auto-filled"
@@ -2378,7 +2506,8 @@ const ItineraryPage: React.FC = () => {
                   </label>
                   <input
                     type="number"
-                    value={editingAttraction.longitude ?? ''}
+                    value={editingAttraction.longitude || ''}
+                    onChange={(e) => setEditingAttraction({ ...editingAttraction, longitude: parseFloat(e.target.value) || null })}
                     className="gh-input bg-gray-50 dark:bg-[#2c2c2e]"
                     step="0.000001"
                     placeholder="Auto-filled"

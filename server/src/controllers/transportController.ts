@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { query, DB_AVAILABLE } from '../config/db';
 import jsonStore from '../config/jsonStore';
 import { computeAndPersistTotal } from '../services/journeyService';
+import { scrapeTicketData } from '../services/ticketScraper';
 
 // Convert snake_case to camelCase and handle Date objects
 const toCamelCase = (obj: any): any => {
@@ -42,6 +43,28 @@ const toCamelCase = (obj: any): any => {
   return obj;
 };
 
+// utility copied from stops: ensure dates are inside journey
+async function assertWithinJourney(journeyId: number, start: Date, end: Date) {
+  if (DB_AVAILABLE) {
+    const r = await query('SELECT start_date, end_date FROM journeys WHERE id=$1', [journeyId]);
+    if (r.rows.length === 0) throw new Error('Journey not found');
+    const { start_date, end_date } = r.rows[0];
+    const js = new Date(start_date);
+    const je = new Date(end_date);
+    if (start < js || end > je) {
+      throw new Error(`Dates must be within journey range (${js.toISOString().slice(0,10)} - ${je.toISOString().slice(0,10)})`);
+    }
+  } else {
+    const journey = await jsonStore.getById('journeys', journeyId);
+    if (!journey) throw new Error('Journey not found');
+    const js = new Date(journey.start_date);
+    const je = new Date(journey.end_date);
+    if (start < js || end > je) {
+      throw new Error(`Dates must be within journey range (${js.toISOString().slice(0,10)} - ${je.toISOString().slice(0,10)})`);
+    }
+  }
+}
+
 // Get all transports for a journey
 export const getTransportsByJourneyId = async (req: Request, res: Response) => {
   try {
@@ -79,6 +102,15 @@ export const createTransport = async (req: Request, res: Response) => {
       flightNumber,
       trainNumber
     } = req.body;
+
+    // date range check
+    try {
+      const start = departureDate ? new Date(departureDate) : new Date();
+      const end = arrivalDate ? new Date(arrivalDate) : start;
+      await assertWithinJourney(journeyId, start, end);
+    } catch (e: any) {
+      return res.status(400).json({ message: e.message });
+    }
     
     // Convert empty strings to null for optional date fields
     const cleanArrivalDate = arrivalDate && arrivalDate.trim() !== '' ? arrivalDate : null;
@@ -98,9 +130,11 @@ export const createTransport = async (req: Request, res: Response) => {
       });
       const transport = toCamelCase(newTransport);
       const io = req.app.get('io');
+      io.emit('transport:created', transport);
       try {
         await computeAndPersistTotal(journeyId);
         const journey = toCamelCase(await jsonStore.getById('journeys', journeyId));
+        io.emit('journey:updated', journey);
       } catch (e) {
         console.warn('Failed to recompute total after transport create (JSON):', e);
       }
@@ -124,9 +158,12 @@ export const createTransport = async (req: Request, res: Response) => {
     const transport = toCamelCase(result.rows[0]);
     
     // Emit Socket.IO event
+    const io = req.app.get('io');
+    io.emit('transport:created', transport);
     try {
       await computeAndPersistTotal(journeyId);
       const journeyRes = await query('SELECT * FROM journeys WHERE id = $1', [journeyId]);
+      io.emit('journey:updated', toCamelCase(journeyRes.rows[0]));
     } catch (e) {
       console.warn('Failed to recompute total after transport create (DB):', e);
     }
@@ -151,9 +188,11 @@ export const updateTransport = async (req: Request, res: Response) => {
         if (!updated) return res.status(404).json({ message: 'Transport not found' });
         const updatedCamel = toCamelCase(updated);
         const io = req.app.get('io');
+        io.emit('transport:updated', updatedCamel);
         try {
           await computeAndPersistTotal(updated.journey_id);
           const journey = toCamelCase(await jsonStore.getById('journeys', updated.journey_id));
+          io.emit('journey:updated', journey);
         } catch (e) {
           console.warn('Failed to recompute total after transport update (JSON, partial):', e);
         }
@@ -170,9 +209,11 @@ export const updateTransport = async (req: Request, res: Response) => {
       const updated = toCamelCase(paidResult.rows[0]);
       console.log(`✅ Transport ${transportId} updated successfully, is_paid=${updated.isPaid}`);
       const io = req.app.get('io');
+      io.emit('transport:updated', updated);
       try {
         await computeAndPersistTotal(updated.journeyId);
         const journeyRes = await query('SELECT * FROM journeys WHERE id = $1', [updated.journeyId]);
+        io.emit('journey:updated', toCamelCase(journeyRes.rows[0]));
       } catch (e) {
         console.warn('Failed to recompute total after transport update (DB, partial):', e);
       }
@@ -192,7 +233,28 @@ export const updateTransport = async (req: Request, res: Response) => {
       flightNumber,
       trainNumber
     } = req.body;
-    
+
+    // if user changes dates, ensure range inside journey
+    if (departureDate || arrivalDate) {
+      let journeyId: number | null = null;
+      if (!DB_AVAILABLE) {
+        const t = await jsonStore.getById('transports', transportId);
+        if (t) journeyId = t.journey_id;
+      } else {
+        const tr = await query('SELECT journey_id FROM transports WHERE id=$1', [transportId]);
+        if (tr.rows.length) journeyId = tr.rows[0].journey_id;
+      }
+      if (journeyId) {
+        const start = departureDate ? new Date(departureDate) : new Date();
+        const end = arrivalDate ? new Date(arrivalDate) : start;
+        try {
+          await assertWithinJourney(journeyId, start, end);
+        } catch (e: any) {
+          return res.status(400).json({ message: e.message });
+        }
+      }
+    }
+
     // Convert empty strings to null for optional date fields
     const cleanArrivalDate = arrivalDate && arrivalDate.trim() !== '' ? arrivalDate : null;
     const cleanDepartureDate = departureDate && departureDate.trim() !== '' ? departureDate : null;
@@ -211,9 +273,11 @@ export const updateTransport = async (req: Request, res: Response) => {
       if (!updated) return res.status(404).json({ message: 'Transport not found' });
       const transport = toCamelCase(updated);
       const io = req.app.get('io');
+      io.emit('transport:updated', transport);
       try {
         await computeAndPersistTotal(transport.journeyId);
         const journey = toCamelCase(await jsonStore.getById('journeys', transport.journeyId));
+        io.emit('journey:updated', journey);
       } catch (e) {
         console.warn('Failed to recompute total after transport update (JSON):', e);
       }
@@ -243,6 +307,8 @@ export const updateTransport = async (req: Request, res: Response) => {
     const transport = toCamelCase(result.rows[0]);
     
     // Emit Socket.IO event
+    const io = req.app.get('io');
+    io.emit('transport:updated', transport);
     
     res.json(transport);
   } catch (error) {
@@ -262,6 +328,7 @@ export const deleteTransport = async (req: Request, res: Response) => {
       const ok = await jsonStore.deleteById('transports', transportId);
       if (!ok) return res.status(404).json({ message: 'Transport not found' });
       const io = req.app.get('io');
+      io.emit('transport:deleted', { id: transportId, journeyId });
       return res.json({ message: 'Transport deleted successfully' });
     }
     
@@ -272,9 +339,12 @@ export const deleteTransport = async (req: Request, res: Response) => {
     await query('DELETE FROM transports WHERE id = $1', [transportId]);
     
     // Emit Socket.IO event with journeyId for proper filtering
+    const io = req.app.get('io');
+    io.emit('transport:deleted', { id: transportId, journeyId });
     try {
       await computeAndPersistTotal(journeyId);
       const journeyRes = await query('SELECT * FROM journeys WHERE id = $1', [journeyId]);
+      io.emit('journey:updated', toCamelCase(journeyRes.rows[0]));
     } catch (e) {
       console.warn('Failed to recompute total after transport delete (DB):', e);
     }
@@ -298,21 +368,16 @@ export const scrapeTicket = async (req: Request, res: Response) => {
     }
     
     console.log(`🔍 Scraping ticket data from: ${url}`);
-    // Scraper service not available in MVP - return stub response
-    const scrapedData = {
-      success: true,
-      url,
-      data: {
-        provider: 'unknown',
-        price: null,
-        departure: null,
-        arrival: null,
-        duration: null
-      },
-      message: 'Scraping not available in MVP - please enter ticket data manually'
-    };
+    const scrapedData = await scrapeTicketData(url);
     
-    console.log('ℹ️  Scraper not available - returning stub response:', scrapedData);
+    if (!scrapedData.success) {
+      return res.status(400).json({ 
+        message: 'Failed to scrape ticket data',
+        error: scrapedData.error 
+      });
+    }
+    
+    console.log('✅ Scraped data:', scrapedData);
     res.json(scrapedData);
     
   } catch (error: any) {
@@ -323,5 +388,3 @@ export const scrapeTicket = async (req: Request, res: Response) => {
     });
   }
 };
-
-

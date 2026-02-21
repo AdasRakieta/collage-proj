@@ -1,27 +1,18 @@
 import { z } from 'zod';
 
-// Custom date validator that accepts both YYYY-MM-DD and ISO datetime strings, or empty string
+// Custom date validator that accepts both YYYY-MM-DD and ISO datetime strings
 const dateStringSchema = z.string()
-  .transform((val) => val.trim()) // Trim whitespace
   .refine((val) => {
-    // Accept empty string (will be converted to undefined later)
-    if (val === '') return true;
     // Accept YYYY-MM-DD format (from HTML date input)
     if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return true;
-    // Accept ISO datetime format with or without seconds (YYYY-MM-DDTHH:MM or YYYY-MM-DDTHH:MM:SS)
-    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?/.test(val)) return true;
+    // Accept ISO datetime format
+    if (/^\d{4}-\d{2}-\d{2}T/.test(val)) return true;
     return false;
   }, 'Invalid date format. Expected YYYY-MM-DD or ISO datetime')
   .transform((val) => {
-    // Convert empty string to undefined
-    if (val === '') return undefined;
     // If it's just a date (YYYY-MM-DD), convert to datetime at midnight
     if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
-      return `${val}:00:00.000Z`;
-    }
-    // If it's datetime without seconds (YYYY-MM-DDTHH:MM), add seconds
-    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(val)) {
-      return `${val}:00`;
+      return `${val}T00:00:00.000Z`;
     }
     return val;
   });
@@ -49,8 +40,8 @@ export const createTransportSchema = z.object({
     toLocation: z.string()
       .min(1, 'To location is required')
       .max(255, 'To location must not exceed 255 characters'),
-    departureDate: dateStringSchema.optional().or(z.literal('').transform(() => undefined)),
-    arrivalDate: dateStringSchema.optional().or(z.literal('').transform(() => undefined)),
+    departureDate: dateStringSchema,
+    arrivalDate: dateStringSchema,
     price: z.number().nonnegative('Price must be non-negative'),
     currency: z.string()
       .length(3, 'Currency must be a 3-letter code')
@@ -63,13 +54,9 @@ export const createTransportSchema = z.object({
     isPaid: z.boolean().optional(),
   }).passthrough().refine(
     (data) => {
-      // If both dates are provided, validate that arrival >= departure
-      if (data.departureDate && data.arrivalDate) {
-        const departure = new Date(data.departureDate);
-        const arrival = new Date(data.arrivalDate);
-        return arrival >= departure;
-      }
-      return true;
+      const departure = new Date(data.departureDate);
+      const arrival = new Date(data.arrivalDate);
+      return arrival >= departure;
     },
     {
       message: 'Arrival date must be after or equal to departure date',

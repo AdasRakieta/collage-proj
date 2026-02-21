@@ -199,6 +199,216 @@
   border: 1px solid #48484a !important;
 }
 
+/* ============================================================
+   react-datepicker – complete light + dark theme override
+   ============================================================ */
+
+/* --- popper wrapper --- */
+.react-datepicker-popper {
+  z-index: 9999 !important;
+}
+
+/* --- calendar container --- */
+.react-datepicker {
+  font-family: inherit !important;
+  font-size: 0.875rem !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12) !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+.react-datepicker__triangle {
+  display: none !important;
+}
+
+/* --- header --- */
+.react-datepicker__header {
+  background: #f3f4f6 !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  padding: 12px 8px 6px !important;
+}
+.react-datepicker__current-month {
+  color: #111827 !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+}
+.react-datepicker__day-name {
+  color: #6b7280 !important;
+  font-weight: 500 !important;
+  width: 2rem !important;
+  line-height: 2rem !important;
+}
+
+/* --- navigation arrows --- */
+.react-datepicker__navigation-icon::before {
+  border-color: #6b7280 !important;
+}
+.react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
+  border-color: #3b82f6 !important;
+}
+
+/* --- days --- */
+.react-datepicker__day {
+  color: #111827 !important;
+  width: 2rem !important;
+  line-height: 2rem !important;
+  border-radius: 50% !important;
+  transition: background 0.15s, color 0.15s;
+}
+.react-datepicker__day:hover {
+  background: #dbeafe !important;
+  color: #1d4ed8 !important;
+}
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+.react-datepicker__day--selected:hover,
+.react-datepicker__day--keyboard-selected:hover {
+  background: #2563eb !important;
+}
+.react-datepicker__day--today {
+  font-weight: 700 !important;
+  color: #3b82f6 !important;
+}
+.react-datepicker__day--today.react-datepicker__day--selected {
+  color: #ffffff !important;
+}
+.react-datepicker__day--outside-month {
+  color: #9ca3af !important;
+}
+.react-datepicker__day--disabled {
+  color: #d1d5db !important;
+  pointer-events: none !important;
+}
+
+/* --- time picker --- */
+.react-datepicker__time-container {
+  border-left: 1px solid #e5e7eb !important;
+  background: #ffffff !important;
+}
+.react-datepicker__time-container .react-datepicker__time {
+  background: #ffffff !important;
+}
+.react-datepicker__time-container .react-datepicker__time-box
+  ul.react-datepicker__time-list
+  li.react-datepicker__time-list-item {
+  color: #374151 !important;
+  padding: 6px 10px !important;
+}
+.react-datepicker__time-container .react-datepicker__time-box
+  ul.react-datepicker__time-list
+  li.react-datepicker__time-list-item:hover {
+  background: #dbeafe !important;
+  color: #1d4ed8 !important;
+}
+.react-datepicker__time-container .react-datepicker__time-box
+  ul.react-datepicker__time-list
+  li.react-datepicker__time-list-item--selected {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* --- input field --- */
+.react-datepicker__input-container input {
+  cursor: pointer;
+}
+
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+.dark .react-datepicker {
+  background: #1c1c1e !important;
+  border-color: #3a3a3c !important;
+  color: #f5f5f7 !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5) !important;
+}
+.dark .react-datepicker__header {
+  background: #2c2c2e !important;
+  border-bottom-color: #3a3a3c !important;
+}
+.dark .react-datepicker__current-month {
+  color: #f5f5f7 !important;
+}
+.dark .react-datepicker__day-name {
+  color: #8e8e93 !important;
+}
+.dark .react-datepicker__navigation-icon::before {
+  border-color: #8e8e93 !important;
+}
+.dark .react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
+  border-color: #0a84ff !important;
+}
+.dark .react-datepicker__day {
+  color: #e5e5ea !important;
+  border-radius: 50% !important;
+}
+.dark .react-datepicker__day:hover {
+  background: rgba(10,132,255,.25) !important;
+  color: #0a84ff !important;
+}
+.dark .react-datepicker__day--selected,
+.dark .react-datepicker__day--keyboard-selected {
+  background: #0a84ff !important;
+  color: #ffffff !important;
+}
+.dark .react-datepicker__day--selected:hover,
+.dark .react-datepicker__day--keyboard-selected:hover {
+  background: #0071e3 !important;
+}
+.dark .react-datepicker__day--today {
+  color: #0a84ff !important;
+  font-weight: 700 !important;
+}
+.dark .react-datepicker__day--today.react-datepicker__day--selected {
+  color: #ffffff !important;
+}
+.dark .react-datepicker__day--outside-month {
+  color: #48484a !important;
+}
+.dark .react-datepicker__day--disabled {
+  color: #3a3a3c !important;
+}
+.dark .react-datepicker__time-container {
+  border-left-color: #3a3a3c !important;
+  background: #1c1c1e !important;
+}
+.dark .react-datepicker__time-container .react-datepicker__time {
+  background: #1c1c1e !important;
+}
+.dark .react-datepicker__time-container .react-datepicker__time-box
+  ul.react-datepicker__time-list {
+  background: #1c1c1e !important;
+}
+.dark .react-datepicker__time-container .react-datepicker__time-box
+  ul.react-datepicker__time-list
+  li.react-datepicker__time-list-item {
+  color: #e5e5ea !important;
+}
+.dark .react-datepicker__time-container .react-datepicker__time-box
+  ul.react-datepicker__time-list
+  li.react-datepicker__time-list-item:hover {
+  background: rgba(10,132,255,.25) !important;
+  color: #0a84ff !important;
+}
+.dark .react-datepicker__time-container .react-datepicker__time-box
+  ul.react-datepicker__time-list
+  li.react-datepicker__time-list-item--selected {
+  background: #0a84ff !important;
+  color: #ffffff !important;
+}
+.dark .react-datepicker__month-container {
+  background: #1c1c1e !important;
+}
+.dark .react-datepicker__month {
+  background: #1c1c1e !important;
+}
+
 .dark .leaflet-control-zoom a {
   background-color: #2c2c2e !important;
   color: #ffffff !important;
@@ -342,3 +552,239 @@
   opacity: 1 !important;
   transform: translateY(0);
 }
+
+/* ============================================================
+   MICRO-INTERACTIONS & ANIMATIONS UPGRADE
+   ============================================================ */
+
+/* --- Keyframes --- */
+@keyframes slideUpIn {
+  from { transform: translateY(14px) scale(0.99); opacity: 0; }
+  to   { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+
+@keyframes bounceInScale {
+  0%   { transform: scale(0.88); opacity: 0; }
+  60%  { transform: scale(1.03); opacity: 1; }
+  100% { transform: scale(1.00); opacity: 1; }
+}
+
+@keyframes shimmerFlow {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1;   }
+  50%       { opacity: 0.5; }
+}
+
+@keyframes floatBounce {
+  0%, 100% { transform: translateY(0);    }
+  50%       { transform: translateY(-5px); }
+}
+
+@keyframes glowPulseGreen {
+  0%, 100% { box-shadow: 0 0 0 0   rgba(52, 199, 89, 0);    }
+  50%       { box-shadow: 0 0 0 7px rgba(52, 199, 89, 0.28); }
+}
+
+@keyframes glowPulseGreenDark {
+  0%, 100% { box-shadow: 0 0 0 0   rgba(48, 209, 88, 0);    }
+  50%       { box-shadow: 0 0 0 7px rgba(48, 209, 88, 0.38); }
+}
+
+@keyframes ripple {
+  0%   { transform: scale(0); opacity: 0.5; }
+  100% { transform: scale(4); opacity: 0;   }
+}
+
+/* --- Animation utility classes --- */
+.animate-slide-up-in { animation: slideUpIn     0.26s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+.animate-bounce-in   { animation: bounceInScale  0.32s cubic-bezier(0.34, 1.56, 0.64, 1)    both; }
+.animate-pulse-soft  { animation: pulseSoft      1.8s  ease-in-out infinite; }
+.animate-float       { animation: floatBounce    3s    ease-in-out infinite; }
+
+/* --- Skeleton shimmer --- */
+.skeleton {
+  background: linear-gradient(90deg, #ececec 25%, #e0e0e0 50%, #ececec 75%);
+  background-size: 200% 100%;
+  animation: shimmerFlow 1.6s ease-in-out infinite;
+  border-radius: 10px;
+}
+.dark .skeleton {
+  background: linear-gradient(90deg, #2c2c2e 25%, #3a3a3c 50%, #2c2c2e 75%);
+  background-size: 200% 100%;
+}
+
+/* --- Stagger utilities --- */
+.stagger-item:nth-child(1)  { animation-delay:   0ms; }
+.stagger-item:nth-child(2)  { animation-delay:  55ms; }
+.stagger-item:nth-child(3)  { animation-delay: 110ms; }
+.stagger-item:nth-child(4)  { animation-delay: 165ms; }
+.stagger-item:nth-child(5)  { animation-delay: 220ms; }
+.stagger-item:nth-child(6)  { animation-delay: 275ms; }
+.stagger-item:nth-child(7)  { animation-delay: 330ms; }
+.stagger-item:nth-child(8)  { animation-delay: 385ms; }
+.stagger-item:nth-child(9)  { animation-delay: 440ms; }
+.stagger-item:nth-child(10) { animation-delay: 495ms; }
+
+/* --- Button active/press feedback (tactile feel) --- */
+.gh-btn-primary:not(:disabled):active,
+.gh-btn-secondary:not(:disabled):active,
+.gh-btn-danger:not(:disabled):active {
+  transform: scale(0.96) !important;
+  transition: transform 0.08s ease !important;
+}
+
+/* --- New Journey button glow --- */
+.btn-glow-green {
+  animation: glowPulseGreen 2.8s ease-in-out infinite;
+}
+.dark .btn-glow-green {
+  animation: glowPulseGreenDark 2.8s ease-in-out infinite;
+}
+
+/* --- Journey card hover lift --- */
+.journey-card-item {
+  transition: transform 0.2s ease, box-shadow 0.2s ease,
+              border-color 0.2s ease, background-color 0.15s ease;
+  will-change: transform;
+}
+.journey-card-item:not(.journey-card-selected):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.09);
+}
+.dark .journey-card-item:not(.journey-card-selected):hover {
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.5);
+}
+.journey-card-item:not(.journey-card-selected):active {
+  transform: scale(0.99);
+  box-shadow: none;
+}
+/* Selected state ring glow */
+.journey-card-selected {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35), 0 2px 10px rgba(59, 130, 246, 0.15);
+}
+.dark .journey-card-selected {
+  box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.45), 0 2px 10px rgba(10, 132, 255, 0.2);
+}
+
+/* --- Stop / Transport card hover lift --- */
+.stop-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.15s ease;
+  will-change: transform;
+}
+.stop-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.07);
+  border-color: #b0b0b8 !important;
+}
+.dark .stop-card:hover {
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+  border-color: #48484a !important;
+}
+.stop-card:active {
+  transform: scale(0.995);
+}
+
+/* --- Icon action buttons (edit/delete) feel more tactile --- */
+.icon-action-btn {
+  transition: background-color 0.15s ease, transform 0.12s ease, color 0.12s ease !important;
+  border-radius: 0.4rem;
+  padding: 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-action-btn:hover {
+  transform: scale(1.12);
+}
+.icon-action-btn:active {
+  transform: scale(0.9) !important;
+}
+
+/* --- Modal overlay + content animation --- */
+.gh-modal-overlay {
+  animation: fadeIn 0.18s ease-out both;
+}
+.gh-modal {
+  animation: slideUpIn 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* --- Improved input focus glow --- */
+.gh-input,
+.gh-textarea,
+.gh-select {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+              background-color 0.15s ease !important;
+}
+.gh-input:focus,
+.gh-textarea:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
+  transform: none;
+}
+.dark .gh-input:focus,
+.dark .gh-textarea:focus {
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.22) !important;
+}
+
+/* --- Attraction list item hover shift --- */
+.attraction-item {
+  transition: background-color 0.15s ease, padding-left 0.15s ease;
+  border-radius: 5px;
+  padding: 3px 6px;
+}
+.attraction-item:hover {
+  background-color: rgba(59, 130, 246, 0.07);
+  padding-left: 10px;
+}
+.dark .attraction-item:hover {
+  background-color: rgba(10, 132, 255, 0.09);
+}
+
+/* --- Subtle gradient section divider --- */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #d1d1d6 40%, #d1d1d6 60%, transparent 100%);
+  margin: 0.25rem 0;
+}
+.dark .section-divider {
+  background: linear-gradient(90deg, transparent 0%, #3a3a3c 40%, #3a3a3c 60%, transparent 100%);
+}
+
+/* --- Checklist item hover --- */
+.checklist-item {
+  transition: background-color 0.12s ease, transform 0.12s ease;
+}
+.checklist-item:hover {
+  background-color: rgba(99, 102, 241, 0.05);
+}
+.dark .checklist-item:hover {
+  background-color: rgba(10, 132, 255, 0.06);
+}
+
+/* --- Link/anchor hover underline slide --- */
+a.link-slide {
+  position: relative;
+  text-decoration: none;
+}
+a.link-slide::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: currentColor;
+  transition: width 0.22s ease;
+}
+a.link-slide:hover::after {
+  width: 100%;
+}
+
+/* --- gh-card subtle hover shadow --- */
+.gh-card {
+  transition: box-shadow 0.2s ease !important;
+}
+

@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Journey Planner — Wykres Gantta & Analiza Biznesowa</title>
+<style>
+  :root {
+    --blue:     #007AFF;
+    --blue-alt: #0a84ff;
+    --green:    #30d158;
+    --orange:   #ff9f0a;
+    --red:      #ff453a;
+    --purple:   #bf5af2;
+    --teal:     #5ac8fa;
+    --bg:       #111113;
+    --surface:  #1c1c1e;
+    --card:     #2c2c2e;
+    --border:   #3a3a3c;
+    --muted:    #636366;
+    --text:     #f5f5f7;
+    --text2:    #aeaeb2;
+    --iwona:    #ff9f0a;
+    --tomasz:   #007AFF;
+    --szymon:   #30d158;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Layout ── */
+  .page { max-width: 1200px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+  .header .badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 16px;
+    border-radius: 100px;
+    margin-bottom: 18px;
+  }
+  .header h1 {
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    background: linear-gradient(135deg, var(--text) 0%, var(--text2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+  .header p {
+    color: var(--text2);
+    font-size: 17px;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  /* ── Section title ── */
+  .section-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 22px;
+    background: var(--blue);
+    border-radius: 2px;
+  }
+
+  /* ── Team legend ── */
+  .legend {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .legend-item .role {
+    font-weight: 400;
+    color: var(--text2);
+    font-size: 12px;
+    margin-left: 2px;
+  }
+
+  /* ── Gantt ── */
+  .gantt-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    /* NO overflow here — any overflow value (even clip) breaks position:sticky in most browsers */
+    margin-bottom: 64px;
+  }
+
+  /* Header row — sticky so it follows page scroll */
+  .gantt-grid {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--card);
+    box-shadow: 0 4px 16px rgba(0,0,0,.55);
+    /* Round the top corners to match the wrapper (since wrapper no longer clips) */
+    border-radius: 16px 16px 0 0;
+    overflow: hidden;
+  }
+  .gantt-header-label {
+    background: var(--card);
+    padding: 14px 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+  }
+  .gantt-weeks {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: auto auto;
+  }
+  /* Month row (top sub-row of the header) */
+  .month-label {
+    text-align: center;
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--text2);
+    padding: 7px 4px 3px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-right: 1px solid rgba(255,255,255,.08);
+    border-bottom: 1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.03);
+  }
+  .month-label:last-of-type { border-right: none; }
+  /* Hour labels (bottom sub-row of the header) */
+  .week-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    padding: 5px 4px 9px;
+    border-right: 1px solid var(--border);
+    letter-spacing: 0.3px;
+  }
+  .week-label:last-child { border-right: none; }
+
+  /* Phase separator */
+  .phase-sep {
+    grid-column: 1 / -1;
+    background: rgba(255,255,255,.03);
+    border-bottom: 1px solid var(--border);
+    padding: 6px 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Task row */
+  .gantt-row {
+    display: contents;
+  }
+  .gantt-task-label {
+    padding: 10px 20px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid rgba(255,255,255,.04);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+  }
+  .gantt-task-label .task-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .gantt-task-label .task-who {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text2);
+  }
+  .gantt-bar-row {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    border-bottom: 1px solid rgba(255,255,255,.04);
+    align-items: center;
+    padding: 8px 4px;
+    position: relative;
+  }
+  .bar {
+    height: 26px;
+    border-radius: 6px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: opacity 0.2s;
+    grid-column: var(--col-start) / span var(--col-span);
+    opacity: .92;
+    padding: 0 5px;
+    min-width: 0;
+  }
+  .bar > * {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: block;
+    min-width: 0;
+  }
+  .bar:hover { opacity: 1; }
+  .bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 100%);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  /* colors per person */
+  .bar-i  { background: var(--iwona);  color: rgba(0,0,0,.75); }
+  .bar-t  { background: var(--tomasz); color: #fff; }
+  .bar-s  { background: var(--szymon); color: rgba(0,0,0,.75); }
+  .bar-it { /* Iwona+Tomasz */
+    background: linear-gradient(90deg, var(--iwona) 50%, var(--tomasz) 50%);
+    color: #fff;
+  }
+  .bar-is { /* Iwona+Szymon */
+    background: linear-gradient(90deg, var(--iwona) 50%, var(--szymon) 50%);
+    color: rgba(0,0,0,.75);
+  }
+  .bar-ts { /* Tomasz+Szymon */
+    background: linear-gradient(90deg, var(--tomasz) 50%, var(--szymon) 50%);
+    color: #fff;
+  }
+  .bar-all {
+     background:  linear-gradient(90deg, var(--iwona) 16%, var(--tomasz) 49%, var(--szymon) 85%); 
+     color: #fff;
+  }
+
+  /* milestone diamond */
+  .milestone {
+    width: 20px; height: 20px;
+    transform: rotate(45deg);
+    border-radius: 3px;
+    display: inline-block;
+    grid-column: var(--col-start) / span 1;
+    margin: 0 auto;
+    background: var(--purple);
+    box-shadow: 0 0 8px var(--purple);
+    justify-self: center;
+  }
+
+  /* ── SWOT ── */
+  .swot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 64px;
+  }
+  @media (max-width: 640px) {
+    .swot-grid { grid-template-columns: 1fr; }
+  }
+  .swot-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .swot-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  .swot-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .swot-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .swot-header p {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 1px;
+  }
+  .swot-body {
+    padding: 18px 22px;
+  }
+  .swot-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+  .swot-item:last-child { border-bottom: none; }
+  .swot-bullet {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-top: 7px;
+    flex-shrink: 0;
+  }
+
+  /* SWOT accent colors */
+  .s-card .swot-icon { background: rgba(48,209,88,.15); }
+  .s-card .swot-header h3 { color: var(--green); }
+  .s-card .swot-bullet { background: var(--green); }
+
+  .w-card .swot-icon { background: rgba(255,69,58,.15); }
+  .w-card .swot-header h3 { color: var(--red); }
+  .w-card .swot-bullet { background: var(--red); }
+
+  .o-card .swot-icon { background: rgba(0,122,255,.15); }
+  .o-card .swot-header h3 { color: var(--blue); }
+  .o-card .swot-bullet { background: var(--blue); }
+
+  .t-card .swot-icon { background: rgba(255,159,10,.15); }
+  .t-card .swot-header h3 { color: var(--orange); }
+  .t-card .swot-bullet { background: var(--orange); }
+
+  /* ── Stats row ── */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 56px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    text-align: center;
+  }
+  .stat-val {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-lbl {
+    font-size: 12px;
+    color: var(--text2);
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+  .footer span { color: var(--text2); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ░░ HEADER ░░ -->
+  <div class="header">
+    <div class="badge">Projekt zespołowy 2025/2026</div>
+    <h1>Journey Planner</h1>
+    <p>Harmonogram prac zespołu · Wykres Gantta · Analiza Biznesowa</p>
+  </div>
+
+  <!-- ░░ STATS ░░ -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-val" style="color:var(--blue)">3</div>
+      <div class="stat-lbl">Członkowie zespołu</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:var(--green)">~200</div>
+      <div class="stat-lbl">Godz. pracy (est.)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:var(--orange)">5</div>
+      <div class="stat-lbl">Główne fazy</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:var(--purple)">20+</div>
+      <div class="stat-lbl">Endpointów API</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:var(--teal)">5</div>
+      <div class="stat-lbl">Kluczowych widoków</div>
+    </div>
+  </div>
+
+  <!-- ░░ GANTT ░░ -->
+  <div class="section-title">Wykres Gantta — harmonogram prac</div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="dot" style="background:var(--iwona)"></div>
+      Iwona <span class="role">Backend</span>
+    </div>
+    <div class="legend-item">
+      <div class="dot" style="background:var(--tomasz)"></div>
+      Tomasz <span class="role">Frontend</span>
+    </div>
+    <div class="legend-item">
+      <div class="dot" style="background:var(--szymon)"></div>
+      Szymon <span class="role">Fullstack / Integracja</span>
+    </div>
+    <div class="legend-item">
+      <div class="dot" style="background:linear-gradient(90deg,var(--iwona) 50%,var(--szymon) 50%)"></div>
+      Iwona + Szymon <span class="role">Backend + Fullstack</span>
+    </div>
+    <div class="legend-item">
+      <div class="dot" style="background:linear-gradient(90deg,var(--iwona) 33%,var(--tomasz) 66%,var(--szymon) 100%)"></div>
+      Cały zespół <span class="role">Wspólnie</span>
+    </div>
+    <div class="legend-item">
+      <div class="dot" style="background:var(--purple)"></div>
+      ◆ <span class="role">Kamień milowy</span>
+    </div>
+  </div>
+
+  <div class="gantt-wrap">
+    <div class="gantt-grid">
+      <!-- Column headers -->
+      <div class="gantt-header-label">Zadanie</div>
+      <div class="gantt-weeks">
+        <!-- Rząd 1: miesiące (każdy obejmuje 2 kolumny = ~40 godz. roboczych) -->
+        <div class="month-label" style="grid-column:span 2">Listopad '25</div>
+        <div class="month-label" style="grid-column:span 2">Grudzień '25</div>
+        <div class="month-label" style="grid-column:span 2">Styczeń '26</div>
+        <div class="month-label" style="grid-column:span 2">Luty '26</div>
+        <div class="month-label" style="grid-column:span 2">Marzec '26</div>
+        <!-- Rząd 2: godziny robocze (skumulowane, ~20h = 2 tyg. × ~10h/tydz.) -->
+        <div class="week-label">20h</div>
+        <div class="week-label">40h</div>
+        <div class="week-label">60h</div>
+        <div class="week-label">80h</div>
+        <div class="week-label">100h</div>
+        <div class="week-label">120h</div>
+        <div class="week-label">140h</div>
+        <div class="week-label">160h</div>
+        <div class="week-label">180h</div>
+        <div class="week-label">200h</div>
+      </div>
+    </div>
+
+    <!-- ── FAZA 1: Architektura ── -->
+    <div class="phase-sep">📐 Faza 1 — Analiza i architektura</div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Analiza wymagań & stack</span>
+        <span class="task-who" style="color:var(--szymon)">Szymon</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-s" style="--col-start:1;--col-span:2">Analiza</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Projekt bazy danych (schema)</span>
+        <span class="task-who" style="color:var(--iwona)">Iwona</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-i" style="--col-start:1;--col-span:2">DB Schema</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Wireframes & design system</span>
+        <span class="task-who" style="color:var(--tomasz)">Tomasz</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-t" style="--col-start:1;--col-span:2">UI Design</div>
+      </div>
+    </div>
+
+    <!-- ── FAZA 2: Core Backend ── -->
+    <div class="phase-sep">⚙️ Faza 2 — Core Backend</div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Express server, CORS, middleware</span>
+        <span class="task-who" style="color:var(--iwona)">Iwona</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-i" style="--col-start:2;--col-span:2">server/index.ts</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">PostgreSQL + JSON fallback</span>
+        <span class="task-who" style="color:var(--iwona)">Iwona</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-i" style="--col-start:2;--col-span:2">db.ts / jsonStore</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Zod validation middleware & schemas</span>
+        <span class="task-who" style="color:var(--iwona)">Iwona</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-i" style="--col-start:3;--col-span:2">validation.ts</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Routes & controllers CRUD</span>
+        <span class="task-who" style="color:var(--iwona)">Iwona</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-i" style="--col-start:3;--col-span:3" title="Routes: journeys / stops / transports / attractions">CRUD Routes</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Journey cost service (totals)</span>
+        <span class="task-who" style="background:linear-gradient(90deg,var(--iwona) 50%,var(--szymon) 50%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Iwona + Szymon</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-is" style="--col-start:4;--col-span:2" title="journeyService.ts — Iwona + Szymon">journeyService.ts</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Currency service & API</span>
+        <span class="task-who" style="color:var(--iwona)">Iwona</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-i" style="--col-start:5;--col-span:2">currencyService.ts</div>
+      </div>
+    </div>
+
+    <!-- ── FAZA 3: Core Frontend ── -->
+    <div class="phase-sep">🎨 Faza 3 — Core Frontend</div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Routing & struktura projektu</span>
+        <span class="task-who" style="color:var(--tomasz)">Tomasz</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-t" style="--col-start:2;--col-span:1">main.tsx</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Dark mode + Tailwind config</span>
+        <span class="task-who" style="color:var(--tomasz)">Tomasz</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-t" style="--col-start:2;--col-span:2">ThemeContext + CSS</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">API service layer (api.ts)</span>
+        <span class="task-who" style="color:var(--tomasz)">Tomasz</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-t" style="--col-start:3;--col-span:2">services/api.ts</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Główny CRUD UI (App.tsx)</span>
+        <span class="task-who" style="color:var(--tomasz)">Tomasz</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-t" style="--col-start:3;--col-span:4" title="App.tsx — podróże / przystanki / transporty">App.tsx CRUD</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Leaflet mapa (JourneyMap)</span>
+        <span class="task-who" style="color:var(--tomasz)">Tomasz</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-t" style="--col-start:4;--col-span:2">JourneyMap.tsx</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">UI components (Toast, Confirm, Modals)</span>
+        <span class="task-who" style="color:var(--tomasz)">Tomasz</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-t" style="--col-start:4;--col-span:2">components/*</div>
+      </div>
+    </div>
+
+    <!-- ── FAZA 4: Zaawansowane funkcje ── -->
+    <div class="phase-sep">🚀 Faza 4 — Funkcje zaawansowane</div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Itinerary Planner (ItineraryPage)</span>
+        <span class="task-who" style="color:var(--tomasz)">Tomasz</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-t" style="--col-start:5;--col-span:3" title="ItineraryPage.tsx — priorytety, DnD, mapa">ItineraryPage.tsx</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Geocoding atrakcji (adres → marker)</span>
+        <span class="task-who" style="color:var(--szymon)">Szymon</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-s" style="--col-start:5;--col-span:2">geocoding.ts</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Auth backend (register/login/JWT)</span>
+        <span class="task-who" style="color:var(--iwona)">Iwona</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-i" style="--col-start:6;--col-span:2">authController.ts</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Auth frontend (Login/Register pages)</span>
+        <span class="task-who" style="color:var(--tomasz)">Tomasz</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-t" style="--col-start:6;--col-span:2">LoginPage / RegisterPage</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Settings page (motyw, waluta)</span>
+        <span class="task-who" style="color:var(--tomasz)">Tomasz</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-t" style="--col-start:6;--col-span:2">SettingsPage.tsx</div>
+      </div>
+    </div>
+
+    <!-- ── FAZA 5: Integracja & stabilizacja ── -->
+    <div class="phase-sep">🔗 Faza 5 — Integracja, testy i finalizacja</div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Integracja frontend ↔ backend</span>
+        <span class="task-who" style="color:var(--szymon)">Szymon</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-s" style="--col-start:7;--col-span:2" title="Integracja frontend ↔ backend">end-to-end</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Fix: datetime walidacja (Zod patch)</span>
+        <span class="task-who" style="color:var(--szymon)">Szymon</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-s" style="--col-start:7;--col-span:1">transport.schema</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Custom DatePicker (react-datepicker)</span>
+        <span class="task-who" style="color:var(--szymon)">Szymon</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-s" style="--col-start:7;--col-span:2">DateInput.tsx</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Socket.IO no-op stabilizacja</span>
+        <span class="task-who" style="color:var(--szymon)">Szymon</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-s" style="--col-start:7;--col-span:1">socket.ts</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Testy manualne & bugfixes</span>
+        <span class="task-who" style="color:var(--szymon)">Cały zespół</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-all" style="--col-start:8;--col-span:2">QA</div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">Dokumentacja</span>
+        <span class="task-who" style="color:var(--szymon)">Szymon</span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="bar bar-s" style="--col-start:9;--col-span:2">Dokumentacja/</div>
+      </div>
+    </div>
+
+    <!-- Milestones -->
+    <div class="phase-sep">◆ Kamienie milowe</div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">M1 — Backend MVP gotowy</span>
+        <span class="task-who"></span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="milestone" style="--col-start:5"></div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">M2 — Frontend MVP gotowy</span>
+        <span class="task-who"></span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="milestone" style="--col-start:7"></div>
+      </div>
+    </div>
+
+    <div class="gantt-row">
+      <div class="gantt-task-label">
+        <span class="task-name">M3 — Prezentacja (wersja finalna)</span>
+        <span class="task-who"></span>
+      </div>
+      <div class="gantt-bar-row">
+        <div class="milestone" style="--col-start:10"></div>
+      </div>
+    </div>
+
+  </div><!-- /gantt-wrap -->
+
+  <!-- ░░ ANALIZA BIZNESOWA ░░ -->
+  <div class="section-title">Analiza Biznesowa — Journey Planner</div>
+
+  <div class="swot-grid">
+
+    <!-- Strengths -->
+    <div class="swot-card s-card">
+      <div class="swot-header">
+        <div class="swot-icon">💪</div>
+        <div>
+          <h3>Mocne strony</h3>
+          <p>Wartość dla użytkownika i rynku</p>
+        </div>
+      </div>
+      <div class="swot-body">
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>All-in-one planer podróży</strong> — mapa, noclegi, transporty, atrakcje i budżet w jednym miejscu eliminują potrzebę wielu aplikacji naraz</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Automatyczne kalkulacje kosztów</strong> — użytkownik zawsze widzi aktualny całkowity budżet bez ręcznego przeliczania w arkuszach kalkulacyjnych</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Planowanie grupowe</strong> — zaproszenia e-mail i role (view/edit/manage) odpowiadają na rosnący trend podróży rodzinnych i ze znajomymi</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Niezależność od platform</strong> — działa w przeglądarce na PC i mobile bez wymagania instalacji; zero friction dla nowego użytkownika</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Niski koszt operacyjny</strong> — możliwość hostingu na Raspberry Pi lub VPS za kilkadziesiąt zł/mies.; open-source stack bez licencji komercyjnych</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Przelicznik walut w czasie rzeczywistym</strong> — konwersja kosztów cząstkowych do waluty podróży redukuje błędy budżetowe przy wyjazdach zagranicznych</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Itinerary z priorytetami i DnD</strong> — intuicyjne planowanie dnia buduje silny wyróżnik wobec prostych list zadań i arkuszy Google Sheets</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weaknesses -->
+    <div class="swot-card w-card">
+      <div class="swot-header">
+        <div class="swot-icon">⚠️</div>
+        <div>
+          <h3>Słabe strony</h3>
+          <p>Bariery akwizycji i retencji użytkowników</p>
+        </div>
+      </div>
+      <div class="swot-body">
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Brak aplikacji mobilnej natywnej</strong> — użytkownicy planują podróże głównie na smartfonach; PWA lub React Native warunkuje szeroką adopcję</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Brak integracji z OTA</strong> — Booking.com, Skyscanner, Google Flights auto-import jest kluczowy dla UX; ręczne dane zniechęcają</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Brak trybu offline</strong> — brak dostępu do planu bez internetu jest blokerem przy roamingu zagranicznym i ograniczonym transferze</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Słaby efekt sieciowy</strong> — korzyść z kolaboracji rośnie wolno przy małej bazie użytkowników; trudno konkurować z Google/TripAdvisorem bez krytycznej masy</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Nieznana marka</strong> — brak rozpoznawalności i budżetu marketingowego na start; wzrost organiczny jest powolny w segmencie podróżniczym</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Brak modelu monetyzacji</strong> — obecna wersja MVP nie ma źródeł przychodu (brak subskrypcji, reklam, prowizji afiliacyjnych) — niezbędne przed skalowaniem</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Opportunities -->
+    <div class="swot-card o-card">
+      <div class="swot-header">
+        <div class="swot-icon">🚀</div>
+        <div>
+          <h3>Szanse rynkowe</h3>
+          <p>Trendy i niezagospodarowane nisze</p>
+        </div>
+      </div>
+      <div class="swot-body">
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Renesans turystyki post-COVID</strong> — globalny rynek turystyki wrócił powyżej poziomów 2019 r.; planery trip mają rosnące zapotrzebowanie</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Niezagospodarowana nisza współpracy grupowej</strong> — Google Trips zamknięty, TripIt bez real-time — realne okno na lidera w segmencie collaborative travel planning</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Model freemium / SaaS</strong> — darmowe konta z limitem podróży + plan Premium (eksport PDF, nieograniczone udostępnianie, zaawansowany budżet walutowy)</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Afiliacja z OTA i hotelami</strong> — integracja linków Booking.com/Airbnb z programem afiliacyjnym generuje prowizję bez kosztów reklamy</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>AI-driven suggestions</strong> — rekomendacje atrakcji i optymalizacja trasy przez LLM stają się standardem; wbudowane AI może wyróżnić produkt rynkowo</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Segment B2B</strong> — narzędzie do planowania delegacji firmowych lub wycieczek incentive z budżetem per projekt — wyższe ARPU i stabilne kontrakty</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>White-label dla agentów turystycznych</strong> — mniejsze biura bez własnych narzędzi; licencja white-label SaaS to droga do szybkiej skali B2B</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Threats -->
+    <div class="swot-card t-card">
+      <div class="swot-header">
+        <div class="swot-icon">🛡️</div>
+        <div>
+          <h3>Zagrożenia</h3>
+          <p>Ryzyka biznesowe i konkurencja</p>
+        </div>
+      </div>
+      <div class="swot-body">
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Dominacja BigTech</strong> — Google Travel, Apple Maps Guides, TripAdvisor mają nieograniczone zasoby i dane; skalowanie bez wyraźnej niszy jest nieopłacalne</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>AI-planery rozmywają rynek</strong> — ChatGPT, Gemini coraz lepiej planują trasy tekstowo; przewaga UX aplikacji zanika bez unikalności interakcji</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Wymogi RODO/GDPR</strong> — przechowywanie danych o podróżach i lokalizacji wymaga zgodności z UE; naruszenia mogą generować kary i utratę zaufania</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Uzależnienie od zewnętrznych map</strong> — zmiana licencji OpenStreetMap lub wzrost kosztów Google Maps API wymaga kosztownej migracji kafelek/providerów</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Trudny onboarding vs. oczekiwania</strong> — użytkownicy przyzwyczajeni do Apple/Google Maps oczekują autofill; ręczne dodawanie danych podnosi churn na etapie rejestracji</span>
+        </div>
+        <div class="swot-item">
+          <div class="swot-bullet"></div>
+          <span><strong>Ryzyko kopiowania przez duże platformy</strong> — jeśli nisza okaże się trafna, Booking.com, Airbnb lub TripAdvisor mogą wbudować kolaboracyjny planer własnym kosztem</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /swot-grid -->
+
+  <!-- ░░ FOOTER ░░ -->
+  <div class="footer">
+    <span>Journey Planner</span> · Projekt zespołowy 2025/2026 ·
+    Iwona (Backend) · Tomasz (Frontend) · Szymon (Fullstack)
+  </div>
+
+</div><!-- /page -->
+</body>
+</html>

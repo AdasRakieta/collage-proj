@@ -1,0 +1,1 @@
+Wykres Ganta konkret kto co. Do tego dołączyć analizę swot
